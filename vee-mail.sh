@@ -4,7 +4,7 @@ VERSION=0.5.10
 HDIR=$(dirname "$0")
 DEBUG=0
 
-. $HDIR/vee_mail.config
+. $HDIR/vee-mail.config
 
 if [ "X$SKIPVERSIONCHECK" == "X0" ]; then
  CURL=$(type -p curl)
