@@ -1,8 +1,13 @@
 #!/bin/bash
 
-VERSION=0.5.10
+VERSION=0.5.11
 HDIR=$(dirname "$0")
 DEBUG=0
+
+if [[ $EUID -ne 0 ]]; then
+   echo "This script must be run as root" 
+   exit 1
+fi
 
 . $HDIR/vee-mail.config
 
