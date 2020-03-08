@@ -1,6 +1,6 @@
 #!/bin/bash
 
-VERSION=0.5.11
+VERSION=0.5.12
 HDIR=$(dirname "$0")
 DEBUG=0
 
@@ -74,7 +74,7 @@ STATE=$(echo $SESSDATA|awk -F'|' '{print $3}')
 DETAILS=$(echo $SESSDATA|awk -F'|' '{print $4}')
 JOBID=$(echo $SESSDATA|awk -F'|' '{print $5}')
 
-if [ $DEBUG -gt 0 ]; then echo -e -n "STARTTIME: $STARTIME, ENDTIME: $ENDTIME, STATE: $STATE, JOBID: $JOBID\nDETAILS: $DETAILS\n";fi
+if [ $DEBUG -gt 0 ]; then echo -e -n "STARTTIME: $STARTTIME, ENDTIME: $ENDTIME, STATE: $STATE, JOBID: $JOBID\nDETAILS: $DETAILS\n";fi
 
 if [ "$JOBID" ]; then
  RAWTARGET=$(sqlite3 /var/lib/veeam/veeam_db.sqlite "SELECT a1.options FROM BackupRepositories AS a1 LEFT JOIN BackupJobs AS a2 ON a1.id=a2.repository_id WHERE a2.id=\"$JOBID\"")
