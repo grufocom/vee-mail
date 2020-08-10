@@ -1,6 +1,6 @@
 #!/bin/bash
 
-VERSION=0.5.12
+VERSION=0.5.13
 HDIR=$(dirname "$0")
 DEBUG=0
 
@@ -94,8 +94,9 @@ if [ "$JOBID" ]; then
   DEVUSEP=$(df -h|grep "$TARGET$"|awk '{print $5}'|sed -e "s/,/\./g" -e "s/M/ M/g" -e "s/G/ G/g" -e "s/T/ T/g" -e "s/P/ P/g")
   LOGIN=""
   DOMAIN=""
+  LOCALDEV=1
  fi
-        if [ "$FST" == "cifs" ]; then
+        if [ "$FST" == "cifs" ] && [ "$LOCALDEV" != "1" ]; then
   if [ "$SMBUSER" ] && [ "$SMBPWD" ]; then
           MPOINT=$(mktemp -d)
    mount -t cifs -o username=$SMBUSER,password=$SMBPWD,domain=$DOMAIN //$TARGET $MPOINT
@@ -108,7 +109,7 @@ if [ "$JOBID" ]; then
                 rmdir $MPOINT
                 fi
         fi
-        if [ "$FST" == "nfs" ]; then
+        if [ "$FST" == "nfs" ] && [ "$LOCALDEV" != "1" ]; then
          MPOINT=$(mktemp -d)
   mount -t nfs $TARGET $MPOINT
          # Filesystem      Size  Used Avail Use% Mounted on
