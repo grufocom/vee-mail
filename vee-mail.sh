@@ -1,6 +1,6 @@
 #!/bin/bash
 
-VERSION=0.5.13
+VERSION=0.5.14
 HDIR=$(dirname "$0")
 DEBUG=0
 
@@ -123,6 +123,7 @@ if [ "$JOBID" ]; then
 fi
 
 if [ ! "$1" == "--bg" ]; then 
+ if [ $DEBUG -gt 0 ]; then echo -e -n "DEBUG: Script is going into background mode, use --bg to avoid that.\n";fi
  nohup $0 --bg >/dev/null 2>/dev/null &
  exit
 fi
