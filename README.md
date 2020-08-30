@@ -8,7 +8,7 @@ So this script reads the data from the sqlite database and fills it into the tem
 # Dependencies
 
 veeam
-sqlite3
+sqlite3 (>= 3.7.0)
 bc
 curl (only for vee-mail update check)
 
