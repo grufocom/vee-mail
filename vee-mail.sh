@@ -1,6 +1,6 @@
 #!/bin/bash
 
-VERSION=0.5.18
+VERSION=0.5.19
 HDIR=$(dirname "$0")
 DEBUG=0
 
@@ -31,7 +31,9 @@ else
  VERSION="$VERSION \(upgrade check disabled\)"
 fi
 
-if [ "$1" == "--bg" ]; then
+STARTEDFROM=$(ps -p $PPID -hco cmd)
+
+if [ "$STARTEDFROM" == "veeamjobman" ]; then
  logger -t vee-mail "waiting for 30 seconds"
  sleep 30
 fi
@@ -130,11 +132,6 @@ if [ "$JOBID" ]; then
                 umount $MPOINT
                 rmdir $MPOINT
         fi
-fi
-
-if [ ! "$1" == "--bg" ] && [ $DEBUG == 0 ]; then 
- nohup $0 --bg >/dev/null 2>/dev/null &
- exit
 fi
 
 if [ "$STATE" == "6" ]; then SUCCESS=1; BGCOLOR="#00B050"; STAT="Success"; else SUCCESS=0; fi
