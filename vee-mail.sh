@@ -1,11 +1,12 @@
 #!/bin/bash
 
-VERSION=0.5.17
+VERSION=0.5.18
 HDIR=$(dirname "$0")
 DEBUG=0
 
 if [[ $EUID -ne 0 ]]; then
    echo "This script must be run as root" 
+   logger -t vee-mail "This script must be run as root"
    exit 1
 fi
 
@@ -18,6 +19,7 @@ if [ "X$SKIPVERSIONCHECK" == "X0" ]; then
   if [ "$AKTVERSION" ]; then
    if [ ! "$VERSION" == "$AKTVERSION" ]; then
     AKTVERSION="\(new Veeam-Mail version $AKTVERSION available\)"
+    logger -t vee-mail "new Veeam-Mail version $AKTVERSION available"
    else
     AKTVERSION=""
    fi
@@ -30,12 +32,14 @@ else
 fi
 
 if [ "$1" == "--bg" ]; then
+ logger -t vee-mail "waiting for 30 seconds"
  sleep 30
 fi
 
 VC=$(which veeamconfig)
 if [ ! "$VC" ]; then
  echo "No Veeam Agent for Linux installed!"
+ logger -t vee-mail "No Veeam Agent for Linux installed!"
  exit
 fi
 
@@ -74,7 +78,10 @@ STATE=$(echo $SESSDATA|awk -F'|' '{print $3}')
 DETAILS=$(echo $SESSDATA|awk -F'|' '{print $4}')
 JOBID=$(echo $SESSDATA|awk -F'|' '{print $5}')
 
-if [ $DEBUG -gt 0 ]; then echo -e -n "STARTTIME: $STARTTIME, ENDTIME: $ENDTIME, STATE: $STATE, JOBID: $JOBID\nDETAILS: $DETAILS\n";fi
+if [ $DEBUG -gt 0 ]; then
+ echo -e -n "STARTTIME: $STARTTIME, ENDTIME: $ENDTIME, STATE: $STATE, JOBID: $JOBID\nDETAILS: $DETAILS\n"
+ logger -t vee-mail "STARTTIME: $STARTTIME, ENDTIME: $ENDTIME, STATE: $STATE, JOBID: $JOBID\nDETAILS: $DETAILS"
+fi
 
 if [ "$JOBID" ]; then
  RAWTARGET=$(sqlite3 /var/lib/veeam/veeam_db.sqlite "SELECT a1.options FROM BackupRepositories AS a1 LEFT JOIN BackupJobs AS a2 ON a1.id=a2.repository_id WHERE a2.id=\"$JOBID\"")
@@ -82,7 +89,10 @@ if [ "$JOBID" ]; then
  FST=$(echo $RAWTARGET|awk -F'FsType="' '{print $2}'|awk -F'"' '{print $1}')
  LOGIN=$(echo $RAWTARGET|awk -F'Login="' '{print $2}'|awk -F'"' '{print $1}')
  DOMAIN=$(echo $RAWTARGET|awk -F'Domain="' '{print $2}'|awk -F'"' '{print $1}')
- if [ $DEBUG -gt 0 ]; then echo -e -n "TARGET: $TARGET, FST: $FST, LOGIN: $LOGIN, DOMAIN: $DOMAIN\n";fi
+ if [ $DEBUG -gt 0 ]; then
+  echo -e -n "TARGET: $TARGET, FST: $FST, LOGIN: $LOGIN, DOMAIN: $DOMAIN\n"
+  logger -t vee-mail "TARGET: $TARGET, FST: $FST, LOGIN: $LOGIN, DOMAIN: $DOMAIN"
+ fi
  if [ ! "$TARGET" ]; then
   TARGET=$(echo $RAWTARGET|awk -F'DeviceMountPoint="' '{print $2}'|awk -F'"' '{print $1}')
   FST=$(mount |grep " $TARGET "|awk '{print $5}')
@@ -136,7 +146,10 @@ PROCESSED=$($BC <<< "scale=1; $PROCESSED/1024/1024/1024")" GB"
 READ=$(echo $DETAILS|awk -F'read_data_size_bytes="' '{print $2}'|awk -F'"' '{print $1}')
 READ=$($BC <<< "scale=1; $READ/1024/1024/1024")" GB"
 TRANSFERRED=$(echo $DETAILS|awk -F'transferred_data_size_bytes="' '{print $2}'|awk -F'"' '{print $1}')
-if [ $DEBUG -gt 0 ]; then echo -e -n "PROCESSED: $PROCESSED, READ: $READ, TRANSFERRED: $TRANSFERRED\n";fi
+if [ $DEBUG -gt 0 ]; then
+ echo -e -n "PROCESSED: $PROCESSED, READ: $READ, TRANSFERRED: $TRANSFERRED\n"
+ logger -t vee-mail "PROCESSED: $PROCESSED, READ: $READ, TRANSFERRED: $TRANSFERRED"
+fi
 if [ $TRANSFERRED -gt 1073741824 ]; then
         TRANSFERRED=$($BC <<< "scale=1; $TRANSFERRED/1024/1024/1024")" GB"
 else
@@ -148,7 +161,10 @@ SOURCELOAD=$(echo $DETAILS|awk -F'source_read_load="' '{print $2}'|awk -F'"' '{p
 SOURCEPLOAD=$(echo $DETAILS|awk -F'source_processing_load="' '{print $2}'|awk -F'"' '{print $1}')
 NETLOAD=$(echo $DETAILS|awk -F'network_load="' '{print $2}'|awk -F'"' '{print $1}')
 TARGETLOAD=$(echo $DETAILS|awk -F'target_write_load="' '{print $2}'|awk -F'"' '{print $1}')
-if [ $DEBUG -gt 0 ]; then echo -e -n "SPEED: $SPEED, SOURCELOAD: $SOURCELOAD, NETLOAD: $NETLOAD, TARGETLOAD: $TARGETLOAD\n";fi
+if [ $DEBUG -gt 0 ]; then
+ echo -e -n "SPEED: $SPEED, SOURCELOAD: $SOURCELOAD, NETLOAD: $NETLOAD, TARGETLOAD: $TARGETLOAD\n"
+ logger -t vee-mail "SPEED: $SPEED, SOURCELOAD: $SOURCELOAD, NETLOAD: $NETLOAD, TARGETLOAD: $TARGETLOAD"
+fi
 
 if [ "$SOURCELOAD" -gt "$SOURCEPLOAD" ] && [ "$SOURCELOAD" -gt "$NETLOAD" ] && [ "$SOURCELOAD" -gt "$TARGETLOAD" ]; then
         BOTTLENECK="Source"
@@ -169,7 +185,10 @@ END=$(date -d "@$ENDTIME" +"%A, %d.%m.%Y %H:%M:%S")
 STIME=$(date -d "@$STARTTIME" +"%H:%M:%S")
 ETIME=$(date -d "@$ENDTIME" +"%H:%M:%S")
 
-if [ $DEBUG -gt 0 ]; then echo -e -n "DURATION: $DURATION, START: $START, END: $END, STIME: $STIME, ETIME: $ETIME\n";fi
+if [ $DEBUG -gt 0 ]; then
+ echo -e -n "DURATION: $DURATION, START: $START, END: $END, STIME: $STIME, ETIME: $ETIME\n"
+ logger -t vee-mail "DURATION: $DURATION, START: $START, END: $END, STIME: $STIME, ETIME: $ETIME"
+fi
 
 # get session error
 ERRLOG=$($VC session log --id $SESSID|egrep 'error|warn'|sed ':a;N;$!ba;s/\n/<br>/g'|sed -e "s/ /\&nbsp;/g")
@@ -178,7 +197,10 @@ if [ "$ERRLOG" == "''" ]; then
  ERRLOG=""
 fi
 
-if [ $DEBUG -gt 0 ]; then echo -e -n "ERRLOG: $ERRLOG\n";fi
+if [ $DEBUG -gt 0 ]; then
+ echo -e -n "ERRLOG: $ERRLOG\n"
+ logger -t vee-mail "ERRLOG: $ERRLOG"
+fi
 
 # create temp file for mail
 TEMPFILE=$(mktemp)
@@ -198,6 +220,7 @@ Content-Type: text/html
 # debug output
 if [ $DEBUG -gt 0 ]; then
  echo -e -n "HN: $HN\nSTAT: $STAT\nBGCOLOR: $BGCOLOR\nSTART: $START\nSUCCESS: $SUCCESS\nERROR: $ERROR\nWARNING: $WARNING\nSTIME: $STIME\nETIME: $ETIME\nREAD: $READ\nTRANSFERRED: $TRANSFERRED\nDURATION: $DURATION\nPROCESSED: $PROCESSED\nBOTTLENECK: $BOTTLENECK\nERRLOG: $ERRLOG\nSPEED: $SPEED\nTARGET: $TARGET\nFST: $FST\nLOGIN: $LOGIN\nDOMAIN: $DOMAIN\n DEVUSEP: $DEVUSEP\n"
+ logger -t vee-mail "HN: $HN; STAT: $STAT; BGCOLOR: $BGCOLOR; START: $START; SUCCESS: $SUCCESS; ERROR: $ERROR; WARNING: $WARNING; STIME: $STIME; ETIME: $ETIME; READ: $READ; TRANSFERRED: $TRANSFERRED; DURATION: $DURATION; PROCESSED: $PROCESSED; BOTTLENECK: $BOTTLENECK; ERRLOG: $ERRLOG; SPEED: $SPEED; TARGET: $TARGET; FST: $FST; LOGIN: $LOGIN; DOMAIN: $DOMAIN;  DEVUSEP: $DEVUSEP"
 fi
 
 sed -e "s/XXXHOSTNAMEXXX/$HN/g" -e "s/XXXSTATXXX/$STAT/g" -e "s/XXXBGCOLORXXX/$BGCOLOR/g" -e "s/XXXBACKUPDATETIMEXXX/$START/g" -e "s/XXXSUCCESSXXX/$SUCCESS/g" -e "s/XXXERRORXXX/$ERROR/g" -e "s/XXXWARNINGXXX/$WARNING/g" -e "s/XXXSTARTXXX/$STIME/g" -e "s/XXXENDXXX/$ETIME/g" -e "s/XXXDATAREADXXX/$READ/g" -e "s/XXXREADXXX/$READ/g" -e "s/XXXTRANSFERREDXXX/$TRANSFERRED/g" -e "s/XXXDURATIONXXX/$DURATION/g" -e "s/XXXSTATUSXXX/$STAT/g" -e "s/XXXTOTALSIZEXXX/$PROCESSED/g" -e "s/XXXBOTTLENECKXXX/$BOTTLENECK/g" -e "s|XXXDETAILSXXX|$ERRLOG|g" -e "s/XXXRATEXXX/$SPEED MB\/s/g" -e "s/XXXBACKUPSIZEXXX/$TRANSFERRED/g" -e "s/XXXAGENTXXX/$AGENT/g" -e "s|XXXTARGETXXX|$TARGET|g" -e "s|XXXFSTXXX|$FST|g" -e "s|XXXLOGINXXX|$LOGIN|g" -e "s|XXXDOMAINXXX|$DOMAIN|g" -e "s|XXXVERSIONXXX|$VERSION|g" -e "s|XXXAKTVERSIONXXX|$AKTVERSION|g" -e "s|XXXDISKSIZEXXX|$DEVSIZE|g" -e "s|XXXDISKUSEDXXX|$DEVUSED|g" -e "s|XXXDISKAVAILXXX|$DEVAVAIL|g" -e "s|XXXDISKUSEPXXX|$DEVUSEP|g" $HTMLTEMPLATE >> $TEMPFILE 
