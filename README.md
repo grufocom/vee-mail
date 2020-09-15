@@ -25,8 +25,28 @@ You can use the vee-mail script as a post-backup script directly in veeam (Confi
 
 /opt/vee-mail/vee-mail.sh
 
-
 # Release notes
+
+## Version 0.5.19
+Removed background mode from script
+
+## Version 0.5.18
+Added debug messages via syslog (logger-tag: vee-mail)
+
+## Version 0.5.16 & 0.5.17
+Changed the way "df" is used for free space on backup device
+
+## Version 0.5.14 & 0.5.15
+Added more debugging output
+
+## Version 0.5.13
+Bugfix Release - don't mount local device
+
+## Version 0.5.12
+Bugfix Release
+
+## Version 0.5.11
+Check for root user before execution
 
 ## Version 0.5.10
 First release on Github with new name "vee-mail"
