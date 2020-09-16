@@ -18,8 +18,8 @@ if [ "X$SKIPVERSIONCHECK" == "X0" ]; then
   AKTVERSION=$($CURL -m2 -f -s https://www.grufo.com/vee_mail.version)
   if [ "$AKTVERSION" ]; then
    if [ ! "$VERSION" == "$AKTVERSION" ]; then
-    AKTVERSION="\(new Veeam-Mail version $AKTVERSION available\)"
-    logger -t vee-mail "new Veeam-Mail version $AKTVERSION available"
+    AKTVERSION="\(new Vee-Mail version $AKTVERSION available\)"
+    logger -t vee-mail "new Vee-Mail version $AKTVERSION available"
    else
     AKTVERSION=""
    fi
