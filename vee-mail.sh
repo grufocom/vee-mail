@@ -1,6 +1,6 @@
 #!/bin/bash
 
-VERSION=0.5.21
+VERSION=0.5.22
 HDIR=$(dirname "$0")
 DEBUG=0
 
@@ -32,10 +32,11 @@ else
 fi
 
 STARTEDFROM=$(ps -p $PPID -hco cmd)
-
-if [ "$STARTEDFROM" == "veeamjobman" ]; then
- logger -t vee-mail "waiting for 60 seconds"
- sleep 60
+if [ "$1" == "--bg" ]; then
+ if [ "$STARTEDFROM" == "veeamjobman" ]; then
+  logger -t vee-mail "waiting for 30 seconds"
+  sleep 30
+ fi
 fi
 
 VC=$(which veeamconfig)
@@ -132,6 +133,11 @@ if [ "$JOBID" ]; then
   umount $MPOINT
   rmdir $MPOINT
  fi
+fi
+
+if [ ! "$1" == "--bg" ] && [ "$STARTEDFROM" == "veeamjobman" ]; then 
+ nohup $0 --bg >/dev/null 2>/dev/null &
+ exit
 fi
 
 if [ "$STATE" == "6" ]; then SUCCESS=1; BGCOLOR="#00B050"; STAT="Success"; else SUCCESS=0; fi
