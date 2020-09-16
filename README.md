@@ -27,6 +27,9 @@ You can use the vee-mail script as a post-backup script directly in veeam (Confi
 
 # Release notes
 
+## Version 0.5.20
+Increased the time the script waits until veeam backup is finished
+
 ## Version 0.5.19
 Removed background mode from script
 
