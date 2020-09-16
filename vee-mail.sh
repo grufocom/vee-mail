@@ -1,6 +1,6 @@
 #!/bin/bash
 
-VERSION=0.5.19
+VERSION=0.5.20
 HDIR=$(dirname "$0")
 DEBUG=0
 
@@ -34,8 +34,8 @@ fi
 STARTEDFROM=$(ps -p $PPID -hco cmd)
 
 if [ "$STARTEDFROM" == "veeamjobman" ]; then
- logger -t vee-mail "waiting for 30 seconds"
- sleep 30
+ logger -t vee-mail "waiting for 60 seconds"
+ sleep 60
 fi
 
 VC=$(which veeamconfig)
