@@ -1,13 +1,13 @@
 #!/bin/bash
 
-VERSION=0.5.20
+VERSION=0.5.21
 HDIR=$(dirname "$0")
 DEBUG=0
 
 if [[ $EUID -ne 0 ]]; then
-   echo "This script must be run as root" 
-   logger -t vee-mail "This script must be run as root"
-   exit 1
+ echo "This script must be run as root" 
+ logger -t vee-mail "This script must be run as root"
+ exit 1
 fi
 
 . $HDIR/vee-mail.config
@@ -49,20 +49,20 @@ YUM=$(which yum)
 
 SQLITE=$(which sqlite3)
 if [ "$SQLITE" != "/usr/bin/sqlite3" ] && [ "$SQLITE" != "/bin/sqlite3" ]; then
-        if [ "$YUM" ]; then
-                yum install -y sqlite3
-        else
+ if [ "$YUM" ]; then
+  yum install -y sqlite3
+ else
   apt-get install -y sqlite3
-        fi
+ fi
 fi
 
 BC=$(which bc)
 if [ "$BC" != "/usr/bin/bc" ] && [ "$BC" != "/bin/bc" ]; then
-        if [ "$YUM" ]; then
-                yum install -y bc
+ if [ "$YUM" ]; then
+  yum install -y bc
  else
   apt-get install -y bc
-        fi
+ fi
 fi
 
 AGENT=$($VC -v)
@@ -98,8 +98,8 @@ if [ "$JOBID" ]; then
  if [ ! "$TARGET" ]; then
   TARGET=$(echo $RAWTARGET|awk -F'DeviceMountPoint="' '{print $2}'|awk -F'"' '{print $1}')
   FST=$(mount |grep " $TARGET "|awk '{print $5}')
-                FSD=$(mount |grep " $TARGET "|awk '{print $1}')
-        # Filesystem      Size  Used Avail Use% Mounted on
+  FSD=$(mount |grep " $TARGET "|awk '{print $1}')
+  # Filesystem      Size  Used Avail Use% Mounted on
   DEVSIZE=$(df -hP|grep "$TARGET$"|awk '{print $2}'|sed -e "s/,/\./g" -e "s/M/ M/g" -e "s/G/ G/g" -e "s/T/ T/g" -e "s/P/ P/g")
   DEVUSED=$(df -hP|grep "$TARGET$"|awk '{print $3}'|sed -e "s/,/\./g" -e "s/M/ M/g" -e "s/G/ G/g" -e "s/T/ T/g" -e "s/P/ P/g")
   DEVAVAIL=$(df -hP|grep "$TARGET$"|awk '{print $4}'|sed -e "s/,/\./g" -e "s/M/ M/g" -e "s/G/ G/g" -e "s/T/ T/g" -e "s/P/ P/g")
@@ -108,30 +108,30 @@ if [ "$JOBID" ]; then
   DOMAIN=""
   LOCALDEV=1
  fi
-        if [ "$FST" == "cifs" ] && [ "$LOCALDEV" != "1" ]; then
+ if [ "$FST" == "cifs" ] && [ "$LOCALDEV" != "1" ]; then
   if [ "$SMBUSER" ] && [ "$SMBPWD" ]; then
-          MPOINT=$(mktemp -d)
+   MPOINT=$(mktemp -d)
    mount -t cifs -o username=$SMBUSER,password=$SMBPWD,domain=$DOMAIN //$TARGET $MPOINT
-          # Filesystem      Size  Used Avail Use% Mounted on
+   # Filesystem      Size  Used Avail Use% Mounted on
    DEVSIZE=$(df -hP|grep "$MPOINT$"|awk '{print $2}'|sed -e "s/,/\./g" -e "s/M/ M/g" -e "s/G/ G/g" -e "s/T/ T/g" -e "s/P/ P/g")
    DEVUSED=$(df -hP|grep "$MPOINT$"|awk '{print $3}'|sed -e "s/,/\./g" -e "s/M/ M/g" -e "s/G/ G/g" -e "s/T/ T/g" -e "s/P/ P/g")
    DEVAVAIL=$(df -hP|grep "$MPOINT$"|awk '{print $4}'|sed -e "s/,/\./g" -e "s/M/ M/g" -e "s/G/ G/g" -e "s/T/ T/g" -e "s/P/ P/g")
    DEVUSEP=$(df -hP|grep "$MPOINT$"|awk '{print $5}'|sed -e "s/,/\./g" -e "s/M/ M/g" -e "s/G/ G/g" -e "s/T/ T/g" -e "s/P/ P/g")
-                umount $MPOINT
-                rmdir $MPOINT
-                fi
-        fi
-        if [ "$FST" == "nfs" ] && [ "$LOCALDEV" != "1" ]; then
-         MPOINT=$(mktemp -d)
+   umount $MPOINT
+   rmdir $MPOINT
+  fi
+ fi
+ if [ "$FST" == "nfs" ] && [ "$LOCALDEV" != "1" ]; then
+  MPOINT=$(mktemp -d)
   mount -t nfs $TARGET $MPOINT
-         # Filesystem      Size  Used Avail Use% Mounted on
+  # Filesystem      Size  Used Avail Use% Mounted on
   DEVSIZE=$(df -hP|grep "$MPOINT$"|awk '{print $2}'|sed -e "s/,/\./g" -e "s/M/ M/g" -e "s/G/ G/g" -e "s/T/ T/g" -e "s/P/ P/g")
-￼  DEVUSED=$(df -hP|grep "$MPOINT$"|awk '{print $3}'|sed -e "s/,/\./g" -e "s/M/ M/g" -e "s/G/ G/g" -e "s/T/ T/g" -e "s/P/ P/g")
-￼  DEVAVAIL=$(df -hP|grep "$MPOINT$"|awk '{print $4}'|sed -e "s/,/\./g" -e "s/M/ M/g" -e "s/G/ G/g" -e "s/T/ T/g" -e "s/P/ P/g")
-￼  DEVUSEP=$(df -hP|grep "$MPOINT$"|awk '{print $5}'|sed -e "s/,/\./g" -e "s/M/ M/g" -e "s/G/ G/g" -e "s/T/ T/g" -e "s/P/ P/g")
-                umount $MPOINT
-                rmdir $MPOINT
-        fi
+  DEVUSED=$(df -hP|grep "$MPOINT$"|awk '{print $3}'|sed -e "s/,/\./g" -e "s/M/ M/g" -e "s/G/ G/g" -e "s/T/ T/g" -e "s/P/ P/g")
+  DEVAVAIL=$(df -hP|grep "$MPOINT$"|awk '{print $4}'|sed -e "s/,/\./g" -e "s/M/ M/g" -e "s/G/ G/g" -e "s/T/ T/g" -e "s/P/ P/g")
+  DEVUSEP=$(df -hP|grep "$MPOINT$"|awk '{print $5}'|sed -e "s/,/\./g" -e "s/M/ M/g" -e "s/G/ G/g" -e "s/T/ T/g" -e "s/P/ P/g")
+  umount $MPOINT
+  rmdir $MPOINT
+ fi
 fi
 
 if [ "$STATE" == "6" ]; then SUCCESS=1; BGCOLOR="#00B050"; STAT="Success"; else SUCCESS=0; fi
@@ -148,9 +148,9 @@ if [ $DEBUG -gt 0 ]; then
  logger -t vee-mail "PROCESSED: $PROCESSED, READ: $READ, TRANSFERRED: $TRANSFERRED"
 fi
 if [ $TRANSFERRED -gt 1073741824 ]; then
-        TRANSFERRED=$($BC <<< "scale=1; $TRANSFERRED/1024/1024/1024")" GB"
+ TRANSFERRED=$($BC <<< "scale=1; $TRANSFERRED/1024/1024/1024")" GB"
 else
-        TRANSFERRED=$($BC <<< "scale=0; $TRANSFERRED/1024/1024")" MB"
+ TRANSFERRED=$($BC <<< "scale=0; $TRANSFERRED/1024/1024")" MB"
 fi
 SPEED=$(echo $DETAILS|awk -F'processing_speed="' '{print $2}'|awk -F'"' '{print $1}')
 SPEED=$($BC <<< "scale=1; $SPEED/1024/1024")
@@ -164,16 +164,16 @@ if [ $DEBUG -gt 0 ]; then
 fi
 
 if [ "$SOURCELOAD" -gt "$SOURCEPLOAD" ] && [ "$SOURCELOAD" -gt "$NETLOAD" ] && [ "$SOURCELOAD" -gt "$TARGETLOAD" ]; then
-        BOTTLENECK="Source"
+ BOTTLENECK="Source"
 fi
 if [ "$SOURCEPLOAD" -gt "$SOURCELOAD" ] && [ "$SOURCEPLOAD" -gt "$NETLOAD" ] && [ "$SOURCEPLOAD" -gt "$TARGETLOAD" ]; then
-        BOTTLENECK="Source CPU"
+ BOTTLENECK="Source CPU"
 fi
 if [ "$NETLOAD" -gt "$SOURCELOAD" ] && [ "$NETLOAD" -gt "$SOURCEPLOAD" ] && [ "$NETLOAD" -gt "$TARGETLOAD" ]; then
-        BOTTLENECK="Network"
+ BOTTLENECK="Network"
 fi
 if [ "$TARGETLOAD" -gt "$SOURCELOAD" ] && [ "$TARGETLOAD" -gt "$SOURCEPLOAD" ] && [ "$TARGETLOAD" -gt "$NETLOAD" ]; then
-        BOTTLENECK="Target"
+ BOTTLENECK="Target"
 fi
 
 DURATION=$(date -d "0 $ENDTIME sec - $STARTTIME sec" +"%H:%M:%S")
