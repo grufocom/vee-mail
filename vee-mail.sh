@@ -1,6 +1,6 @@
 #!/bin/bash
 
-VERSION=0.5.23
+VERSION=0.5.24
 HDIR=$(dirname "$0")
 DEBUG=0
 INFOMAIL=1
@@ -143,22 +143,28 @@ if [ ! "$1" == "--bg" ] && [ "$STARTEDFROM" == "veeamjobman" ]; then
 fi
 
 if [ "$STATE" == "6" ]; then
- SUCCESS=1; BGCOLOR="#00B050"; STAT="Success"; else SUCCESS=0;
- if [ $INFOMAIL -eq 1 ]; then
+ SUCCESS=1; BGCOLOR="#00B050"; STAT="Success";
+ if [ $INFOMAIL -ge 1 ]; then
   SENDM=1
  fi
+else
+ SUCCESS=0;
 fi
 if [ "$STATE" == "7" ]; then
- ERROR=1; BGCOLOR="#fb9895"; STAT="Failed"; else ERROR=0;
- if [ $INFOMAIL -eq 3 ]; then
+ ERROR=1; BGCOLOR="#fb9895"; STAT="Failed";
+ if [ $INFOMAIL -ge 3 ]; then
   SENDM=1
  fi
+else
+ ERROR=0;
 fi
-if [ "$STATE" == "9" ]; then 
- WARNING=1; BGCOLOR="#fbcb95"; STAT="Warning"; else WARNING=0;
- if [ $INFOMAIL -eq 2 ]; then
+if [ "$STATE" == "9" ]; then
+ WARNING=1; BGCOLOR="#fbcb95"; STAT="Warning";
+ if [ $INFOMAIL -ge 2 ]; then
   SENDM=1
  fi
+else
+ WARNING=0;
 fi
 
 PROCESSED=$(echo $DETAILS|awk -F'processed_data_size_bytes="' '{print $2}'|awk -F'"' '{print $1}')
