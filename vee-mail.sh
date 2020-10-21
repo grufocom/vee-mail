@@ -1,8 +1,10 @@
 #!/bin/bash
 
-VERSION=0.5.22
+VERSION=0.5.23
 HDIR=$(dirname "$0")
 DEBUG=0
+INFOMAIL=1
+# INFOMAIL 1=ALWAYS (DEFAULT), 2=WARN, 3=ERROR
 
 if [[ $EUID -ne 0 ]]; then
  echo "This script must be run as root" 
@@ -140,9 +142,24 @@ if [ ! "$1" == "--bg" ] && [ "$STARTEDFROM" == "veeamjobman" ]; then
  exit
 fi
 
-if [ "$STATE" == "6" ]; then SUCCESS=1; BGCOLOR="#00B050"; STAT="Success"; else SUCCESS=0; fi
-if [ "$STATE" == "7" ]; then ERROR=1; BGCOLOR="#fb9895"; STAT="Failed"; else ERROR=0; fi
-if [ "$STATE" == "9" ]; then WARNING=1; BGCOLOR="#fbcb95"; STAT="Warning"; else WARNING=0; fi
+if [ "$STATE" == "6" ]; then
+ SUCCESS=1; BGCOLOR="#00B050"; STAT="Success"; else SUCCESS=0;
+ if [ $INFOMAIL -eq 1 ]; then
+  SENDM=1
+ fi
+fi
+if [ "$STATE" == "7" ]; then
+ ERROR=1; BGCOLOR="#fb9895"; STAT="Failed"; else ERROR=0;
+ if [ $INFOMAIL -eq 3 ]; then
+  SENDM=1
+ fi
+fi
+if [ "$STATE" == "9" ]; then 
+ WARNING=1; BGCOLOR="#fbcb95"; STAT="Warning"; else WARNING=0;
+ if [ $INFOMAIL -eq 2 ]; then
+  SENDM=1
+ fi
+fi
 
 PROCESSED=$(echo $DETAILS|awk -F'processed_data_size_bytes="' '{print $2}'|awk -F'"' '{print $1}')
 PROCESSED=$($BC <<< "scale=1; $PROCESSED/1024/1024/1024")" GB"
@@ -228,7 +245,9 @@ fi
 
 sed -e "s/XXXHOSTNAMEXXX/$HN/g" -e "s/XXXSTATXXX/$STAT/g" -e "s/XXXBGCOLORXXX/$BGCOLOR/g" -e "s/XXXBACKUPDATETIMEXXX/$START/g" -e "s/XXXSUCCESSXXX/$SUCCESS/g" -e "s/XXXERRORXXX/$ERROR/g" -e "s/XXXWARNINGXXX/$WARNING/g" -e "s/XXXSTARTXXX/$STIME/g" -e "s/XXXENDXXX/$ETIME/g" -e "s/XXXDATAREADXXX/$READ/g" -e "s/XXXREADXXX/$READ/g" -e "s/XXXTRANSFERREDXXX/$TRANSFERRED/g" -e "s/XXXDURATIONXXX/$DURATION/g" -e "s/XXXSTATUSXXX/$STAT/g" -e "s/XXXTOTALSIZEXXX/$PROCESSED/g" -e "s/XXXBOTTLENECKXXX/$BOTTLENECK/g" -e "s|XXXDETAILSXXX|$ERRLOG|g" -e "s/XXXRATEXXX/$SPEED MB\/s/g" -e "s/XXXBACKUPSIZEXXX/$TRANSFERRED/g" -e "s/XXXAGENTXXX/$AGENT/g" -e "s|XXXTARGETXXX|$TARGET|g" -e "s|XXXFSTXXX|$FST|g" -e "s|XXXLOGINXXX|$LOGIN|g" -e "s|XXXDOMAINXXX|$DOMAIN|g" -e "s|XXXVERSIONXXX|$VERSION|g" -e "s|XXXAKTVERSIONXXX|$AKTVERSION|g" -e "s|XXXDISKSIZEXXX|$DEVSIZE|g" -e "s|XXXDISKUSEDXXX|$DEVUSED|g" -e "s|XXXDISKAVAILXXX|$DEVAVAIL|g" -e "s|XXXDISKUSEPXXX|$DEVUSEP|g" $HTMLTEMPLATE >> $TEMPFILE 
 # send email
-cat $TEMPFILE | sendmail -t
+if [ $SENDM -eq 1 ]; then
+ cat $TEMPFILE | sendmail -t
+fi
 rm $TEMPFILE
 
 exit
