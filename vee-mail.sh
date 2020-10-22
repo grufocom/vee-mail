@@ -144,7 +144,7 @@ fi
 
 if [ "$STATE" == "6" ]; then
  SUCCESS=1; BGCOLOR="#00B050"; STAT="Success";
- if [ $INFOMAIL -ge 1 ]; then
+ if [ $INFOMAIL -eq 1 ]; then
   SENDM=1
  fi
 else
@@ -152,7 +152,7 @@ else
 fi
 if [ "$STATE" == "7" ]; then
  ERROR=1; BGCOLOR="#fb9895"; STAT="Failed";
- if [ $INFOMAIL -ge 3 ]; then
+ if [ $INFOMAIL -ge 1 ]; then
   SENDM=1
  fi
 else
@@ -160,7 +160,7 @@ else
 fi
 if [ "$STATE" == "9" ]; then
  WARNING=1; BGCOLOR="#fbcb95"; STAT="Warning";
- if [ $INFOMAIL -ge 2 ]; then
+ if [ $INFOMAIL -le 2 ]; then
   SENDM=1
  fi
 else
