@@ -27,6 +27,9 @@ You can use the vee-mail script as a post-backup script directly in veeam (Confi
 
 # Release notes
 
+## Version 0.5.26
+bugfix SENDM needs to be set
+
 ## Version 0.5.23 - 0.5.25
 New parameter for info-mails, you can now set when you would like to get an infomail from vee-mail
 
