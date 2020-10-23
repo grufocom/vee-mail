@@ -1,10 +1,11 @@
 #!/bin/bash
 
-VERSION=0.5.25
+VERSION=0.5.26
 HDIR=$(dirname "$0")
 DEBUG=0
 INFOMAIL=1
 # INFOMAIL 1=ALWAYS (DEFAULT), 2=WARN, 3=ERROR
+SENDM=0
 
 if [[ $EUID -ne 0 ]]; then
  echo "This script must be run as root" 
