@@ -1,6 +1,6 @@
 #!/bin/bash
 
-VERSION=0.5.26
+VERSION=0.5.27
 HDIR=$(dirname "$0")
 DEBUG=0
 INFOMAIL=1
@@ -238,9 +238,10 @@ HN=${HOSTNAME^^}
 # build email
 echo "From: $EMAILFROM
 To: $EMAILTO
-Subject: [$STAT] $HN - $START
+Subject: =?UTF-8?Q?[$STAT] $HN - $START?=
 MIME-Version: 1.0
-Content-Type: text/html
+Content-Type: text/html; charset=utf-8
+Content-Transfer-Encoding: 8bit
 
 " > $TEMPFILE
 
