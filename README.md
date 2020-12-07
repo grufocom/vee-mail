@@ -27,6 +27,9 @@ You can use the vee-mail script as a post-backup script directly in veeam (Confi
 
 # Release notes
 
+## Version 0.5.27
+bugfix latin character in mail subject, switched to 8-bit and utf8
+
 ## Version 0.5.26
 bugfix SENDM needs to be set
 
