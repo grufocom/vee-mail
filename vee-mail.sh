@@ -112,7 +112,7 @@ if [ "$JOBID" ]; then
   DOMAIN=""
   LOCALDEV=1
  fi
- if [ "$FST" == "cifs" ] && [ "$LOCALDEV" != "1" ]; then
+ if [ "$FST" == "cifs" ] || [ "$FST" == "smb" ] && [ "$LOCALDEV" != "1" ]; then
   if [ "$SMBUSER" ] && [ "$SMBPWD" ]; then
    MPOINT=$(mktemp -d)
    mount -t cifs -o username=$SMBUSER,password=$SMBPWD,domain=$DOMAIN //$TARGET $MPOINT
