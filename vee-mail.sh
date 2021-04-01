@@ -1,6 +1,6 @@
 #!/bin/bash
 
-VERSION=0.5.28
+VERSION=0.5.29
 HDIR=$(dirname "$0")
 DEBUG=0
 INFOMAIL=1
@@ -91,7 +91,7 @@ fi
 
 if [ "$JOBID" ]; then
  RAWTARGET=$(sqlite3 /var/lib/veeam/veeam_db.sqlite "SELECT a1.options FROM BackupRepositories AS a1 LEFT JOIN BackupJobs AS a2 ON a1.id=a2.repository_id WHERE a2.id=\"$JOBID\"")
- TARGET=$(echo $RAWTARGET|awk -F'Address="' '{print $2}'|awk -F'"' '{print $1}')
+ TARGET=$(echo $RAWTARGET|awk -F'Address="' '{print $2}'|awk -F'"' '{print $1}'|sed -e "s/^\/\///g")
  FST=$(echo $RAWTARGET|awk -F'FsType="' '{print $2}'|awk -F'"' '{print $1}')
  LOGIN=$(echo $RAWTARGET|awk -F'Login="' '{print $2}'|awk -F'"' '{print $1}')
  DOMAIN=$(echo $RAWTARGET|awk -F'Domain="' '{print $2}'|awk -F'"' '{print $1}')
