@@ -27,6 +27,9 @@ You can use the vee-mail script as a post-backup script directly in veeam (Confi
 
 # Release notes
 
+## Version 0.5.28
+added check for FST is smb - not only cifs
+
 ## Version 0.5.27
 bugfix latin character in mail subject, switched to 8-bit and utf8
 
