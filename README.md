@@ -27,6 +27,9 @@ You can use the vee-mail script as a post-backup script directly in veeam (Confi
 
 # Release notes
 
+## Version 0.5.29
+remove trailing slahes from target path (cifs/smb)
+
 ## Version 0.5.28
 added check for FST is smb - not only cifs
 
