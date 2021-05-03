@@ -27,6 +27,9 @@ You can use the vee-mail script as a post-backup script directly in veeam (Confi
 
 # Release notes
 
+## Version 0.5.30
+add sender address to sendmail command
+
 ## Version 0.5.29
 remove trailing slahes from target path (cifs/smb)
 
