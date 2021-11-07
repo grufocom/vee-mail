@@ -11,6 +11,7 @@ veeam
 sqlite3 (>= 3.7.0)  
 bc  
 curl (only for vee-mail update check)  
+sendmail (your system should be able to send mails with sendmail command - postfix, bsd-mailx, nullmailer,...)
 
 # Install
 
