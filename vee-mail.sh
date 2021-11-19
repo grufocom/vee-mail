@@ -69,6 +69,15 @@ if [ "$BC" != "/usr/bin/bc" ] && [ "$BC" != "/bin/bc" ]; then
  fi
 fi
 
+SENDMAIL=$(which sendmail)
+if [ "$SENDMAIL" != "/usr/bin/sendmail" ] && [ "$SENDMAIL" != "/bin/sendmail" ]; then
+ if [ "$YUM" ]; then
+  yum install -y sendmail
+ else
+  apt-get install -y sendmail
+ fi
+fi
+
 AGENT=$($VC -v)
 # get last session id
 SESSID=$($VC session list|grep -v "Total amount"|tail -1|awk '{print $3}')
