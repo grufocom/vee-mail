@@ -70,7 +70,7 @@ if [ "$BC" != "/usr/bin/bc" ] && [ "$BC" != "/bin/bc" ]; then
 fi
 
 SENDMAIL=$(which sendmail)
-if [ "$SENDMAIL" != "/usr/bin/sendmail" ] && [ "$SENDMAIL" != "/bin/sendmail" ]; then
+if [ "$SENDMAIL" != "/usr/sbin/sendmail" ] && [ "$SENDMAIL" != "/bin/sendmail" ]; then
  if [ "$YUM" ]; then
   yum install -y sendmail
  else
@@ -265,6 +265,6 @@ sed -e "s/XXXJOBNAMEXXX/$JOBNAME/g" -e "s/XXXHOSTNAMEXXX/$HN/g" -e "s/XXXSTATXXX
 if [ $SENDM -eq 1 ]; then
  cat $TEMPFILE | sendmail -f $EMAILFROM -t
 fi
-rm $TEMPFILE
+#rm $TEMPFILE
 
 exit
