@@ -28,6 +28,9 @@ You can use the vee-mail script as a post-backup script directly in veeam (Confi
 
 # Release notes
 
+## Version 0.5.31
+sendmail get's installed if not already done
+
 ## Version 0.5.30
 add sender address to sendmail command
 
