@@ -17,7 +17,7 @@ sendmail (your system should be able to send mails with sendmail command - postf
 
 git clone https://github.com/grufocom/vee-mail  
 move the directory "vee-mail" to /opt or any other directory you would like to install it into
-change vee-mail.confg file to your needs.  
+change vee-mail.config file to your needs.  
 chmod +x vee-mail.sh
 
 # Use
