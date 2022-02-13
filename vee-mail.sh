@@ -1,6 +1,6 @@
 #!/bin/bash
 
-VERSION=0.5.31
+VERSION=0.5.32
 HDIR=$(dirname "$0")
 DEBUG=0
 INFOMAIL=1
@@ -75,6 +75,15 @@ if [ "$SENDMAIL" != "/usr/sbin/sendmail" ] && [ "$SENDMAIL" != "/bin/sendmail" ]
   yum install -y sendmail
  else
   apt-get install -y sendmail
+ fi
+fi
+
+DATEUTILS_DDIFF=$(which dateutils.ddiff)
+if [ "$DATEUTILS_DDIFF" != "/usr/bin/dateutils.ddiff" ] && [ "$DATEUTILS_DDIFF" != "/bin/dateutils.ddiff" ]; then
+ if [ "$YUM" ]; then
+  yum install -y dateutils
+ else
+  apt-get install -y dateutils
  fi
 fi
 
@@ -215,7 +224,7 @@ if [ "$TARGETLOAD" -gt "$SOURCELOAD" ] && [ "$TARGETLOAD" -gt "$SOURCEPLOAD" ] &
  BOTTLENECK="Target"
 fi
 
-DURATION=$(date -d "0 $ENDTIME sec - $STARTTIME sec" +"%H:%M:%S")
+DURATION=$($DATEUTILS_DDIFF -i %s -f "%H:%M:%S" "$STARTTIME" "$ENDTIME")
 START=$(date -d "@$STARTTIME" +"%A, %d %B %Y %H:%M:%S")
 END=$(date -d "@$ENDTIME" +"%A, %d.%m.%Y %H:%M:%S")
 STIME=$(date -d "@$STARTTIME" +"%H:%M:%S")
@@ -265,6 +274,6 @@ sed -e "s/XXXJOBNAMEXXX/$JOBNAME/g" -e "s/XXXHOSTNAMEXXX/$HN/g" -e "s/XXXSTATXXX
 if [ $SENDM -eq 1 ]; then
  cat $TEMPFILE | sendmail -f $EMAILFROM -t
 fi
-#rm $TEMPFILE
+rm $TEMPFILE
 
 exit
