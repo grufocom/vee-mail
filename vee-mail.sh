@@ -224,7 +224,7 @@ if [ "$TARGETLOAD" -gt "$SOURCELOAD" ] && [ "$TARGETLOAD" -gt "$SOURCEPLOAD" ] &
  BOTTLENECK="Target"
 fi
 
-DURATION=$($DATEUTILS_DDIFF -f "%H:%M:%S" `date -d "@$STARTTIME" "+%Y-%m-%dT%H:%M:%S"` `date -d "@$ENDTIME" "+%Y-%m-%dT%H:%M:%S"`)
+DURATION=$($DATEUTILS_DDIFF -i %s -f "%H:%M:%S" "$STARTTIME" "$ENDTIME")
 START=$(date -d "@$STARTTIME" +"%A, %d %B %Y %H:%M:%S")
 END=$(date -d "@$ENDTIME" +"%A, %d.%m.%Y %H:%M:%S")
 STIME=$(date -d "@$STARTTIME" +"%H:%M:%S")
