@@ -89,7 +89,7 @@ fi
 
 AGENT=$($VC -v)
 # get last session id
-SESSID=$($VC session list|grep -v "Total amount"|tail -1|awk '{print $3}')
+SESSID=$($VC session list|grep -v "Total amount"|tail -1|awk '{print $(NF-5)}')
 SESSID=${SESSID:1:${#SESSID}-2}
 
 # state 1=Running, 6=Success, 7=Failed, 9=Warning
