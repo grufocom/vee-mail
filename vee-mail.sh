@@ -1,6 +1,6 @@
 #!/bin/bash
 
-VERSION=0.5.33
+VERSION=0.5.34
 HDIR=$(dirname "$0")
 DEBUG=0
 INFOMAIL=1
@@ -15,14 +15,15 @@ fi
 
 . $HDIR/vee-mail.config
 
-if [ "X$SKIPVERSIONCHECK" == "X0" ]; then
- CURL=$(type -p curl)
+if [ $SKIPVERSIONCHECK -ne 1 ]; then
+ CURL=$(which curl)
  if [ "$CURL" ]; then
-  AKTVERSION=$($CURL -m2 -f -s https://www.grufo.com/vee_mail.version)
+  AKTVERSION=$($CURL -m2 -f -s https://raw.githubusercontent.com/grufocom/vee-mail/master/vee-mail.sh --stderr - | grep "^VERSION=" | awk -F'=' '{print $2}')
   if [ "$AKTVERSION" ]; then
-   if [ ! "$VERSION" == "$AKTVERSION" ]; then
-    AKTVERSION="\(new Vee-Mail version $AKTVERSION available\)"
+   HIGHESTVERSION=$(echo "$VERSION\n$AKTVERSION" | sort -rV | head -n1)
+   if [ "$VERSION" != "$HIGHESTVERSION" ]; then
     logger -t vee-mail "new Vee-Mail version $AKTVERSION available"
+    AKTVERSION="\(new Vee-Mail version $AKTVERSION available\)"
    else
     AKTVERSION=""
    fi
