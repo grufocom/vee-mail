@@ -29,6 +29,9 @@ You can use the vee-mail script as a post-backup script directly in veeam (Confi
 
 # Release notes
 
+## Version 0.5.34
+new version check against github
+
 ## Version 0.5.33
 Improve finding session id
 
