@@ -61,15 +61,6 @@ if [ "$SQLITE" != "/usr/bin/sqlite3" ] && [ "$SQLITE" != "/bin/sqlite3" ]; then
  fi
 fi
 
-BC=$(which bc)
-if [ "$BC" != "/usr/bin/bc" ] && [ "$BC" != "/bin/bc" ]; then
- if [ "$YUM" ]; then
-  yum install -y bc
- else
-  apt-get install -y bc
- fi
-fi
-
 SENDMAIL=$(which sendmail)
 if [ "$SENDMAIL" != "/usr/sbin/sendmail" ] && [ "$SENDMAIL" != "/bin/sendmail" ]; then
  if [ "$YUM" ]; then
@@ -188,21 +179,21 @@ else
 fi
 
 PROCESSED=$(echo $DETAILS|awk -F'processed_data_size_bytes="' '{print $2}'|awk -F'"' '{print $1}')
-PROCESSED=$($BC <<< "scale=1; $PROCESSED/1024/1024/1024")" GB"
+PROCESSED=$(awk "BEGIN {printf \"%.1f\n\", $PROCESSED/1024/1024/1024}")" GB"
 READ=$(echo $DETAILS|awk -F'read_data_size_bytes="' '{print $2}'|awk -F'"' '{print $1}')
-READ=$($BC <<< "scale=1; $READ/1024/1024/1024")" GB"
+READ=$(awk "BEGIN {printf \"%.1f\n\", $READ/1024/1024/1024}")" GB"
 TRANSFERRED=$(echo $DETAILS|awk -F'transferred_data_size_bytes="' '{print $2}'|awk -F'"' '{print $1}')
 if [ $DEBUG -gt 0 ]; then
  echo -e -n "PROCESSED: $PROCESSED, READ: $READ, TRANSFERRED: $TRANSFERRED\n"
  logger -t vee-mail "PROCESSED: $PROCESSED, READ: $READ, TRANSFERRED: $TRANSFERRED"
 fi
 if [ $TRANSFERRED -gt 1073741824 ]; then
- TRANSFERRED=$($BC <<< "scale=1; $TRANSFERRED/1024/1024/1024")" GB"
+ TRANSFERRED=$(awk "BEGIN {printf \"%.1f\n\", $TRANSFERRED/1024/1024/1024}")" GB"
 else
- TRANSFERRED=$($BC <<< "scale=0; $TRANSFERRED/1024/1024")" MB"
+ TRANSFERRED=$(awk "BEGIN {printf \"%.0f\n\", $TRANSFERRED/1024/1024}")" MB"
 fi
 SPEED=$(echo $DETAILS|awk -F'processing_speed="' '{print $2}'|awk -F'"' '{print $1}')
-SPEED=$($BC <<< "scale=1; $SPEED/1024/1024")
+SPEED=$(awk "BEGIN {printf \"%.1f\n\", $SPEED/1024/1024}")
 SOURCELOAD=$(echo $DETAILS|awk -F'source_read_load="' '{print $2}'|awk -F'"' '{print $1}')
 SOURCEPLOAD=$(echo $DETAILS|awk -F'source_processing_load="' '{print $2}'|awk -F'"' '{print $1}')
 NETLOAD=$(echo $DETAILS|awk -F'network_load="' '{print $2}'|awk -F'"' '{print $1}')
