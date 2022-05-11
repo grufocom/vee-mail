@@ -11,7 +11,6 @@ veeam
 sqlite3 (>= 3.7.0)  
 curl (only for vee-mail update check)  
 sendmail (your system should be able to send mails with sendmail command - postfix, bsd-mailx, nullmailer,...)
-dateutils
 
 # Install
 
@@ -27,6 +26,9 @@ You can use the vee-mail script as a post-backup script directly in veeam (Confi
 /opt/vee-mail/vee-mail.sh
 
 # Release notes
+
+## Version 0.5.36
+remove dateutils dependancy
 
 ## Version 0.5.35
 remove bc dependancy
