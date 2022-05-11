@@ -15,8 +15,43 @@ fi
 
 . $HDIR/vee-mail.config
 
+VC=$(which veeamconfig)
+if [ ! "$VC" ]; then
+ echo "No Veeam Agent for Linux installed!"
+ logger -t vee-mail "No Veeam Agent for Linux installed!"
+ exit
+fi
+
+YUM=$(which yum)
+
+SQLITE=$(which sqlite3)
+if [ "$SQLITE" != "/usr/bin/sqlite3" ] && [ "$SQLITE" != "/bin/sqlite3" ]; then
+ if [ "$YUM" ]; then
+  yum install -y sqlite3
+ else
+  apt-get install -y sqlite3
+ fi
+fi
+
+CURL=$(which curl)
+if [ $USECURL -eq 1 ] && [ ! "$CURL" ]; then
+ if [ "$YUM" ]; then
+  yum install -y curl
+ else
+  apt-get install -y curl
+ fi
+fi
+
+SENDMAIL=$(which sendmail)
+if [ $USECURL -ne 1 ] &&[ "$SENDMAIL" != "/usr/sbin/sendmail" ] && [ "$SENDMAIL" != "/bin/sendmail" ]; then
+ if [ "$YUM" ]; then
+  yum install -y sendmail
+ else
+  apt-get install -y sendmail
+ fi
+fi
+
 if [ $SKIPVERSIONCHECK -ne 1 ]; then
- CURL=$(which curl)
  if [ "$CURL" ]; then
   AKTVERSION=$($CURL -m2 -f -s https://raw.githubusercontent.com/grufocom/vee-mail/master/vee-mail.sh --stderr - | grep "^VERSION=" | awk -F'=' '{print $2}')
   if [ "$AKTVERSION" ]; then
@@ -43,32 +78,6 @@ if [ "$1" == "--bg" ]; then
  fi
 fi
 
-VC=$(which veeamconfig)
-if [ ! "$VC" ]; then
- echo "No Veeam Agent for Linux installed!"
- logger -t vee-mail "No Veeam Agent for Linux installed!"
- exit
-fi
-
-YUM=$(which yum)
-
-SQLITE=$(which sqlite3)
-if [ "$SQLITE" != "/usr/bin/sqlite3" ] && [ "$SQLITE" != "/bin/sqlite3" ]; then
- if [ "$YUM" ]; then
-  yum install -y sqlite3
- else
-  apt-get install -y sqlite3
- fi
-fi
-
-SENDMAIL=$(which sendmail)
-if [ "$SENDMAIL" != "/usr/sbin/sendmail" ] && [ "$SENDMAIL" != "/bin/sendmail" ]; then
- if [ "$YUM" ]; then
-  yum install -y sendmail
- else
-  apt-get install -y sendmail
- fi
-fi
 
 AGENT=$($VC -v)
 # get last session id
