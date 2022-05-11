@@ -9,8 +9,11 @@ So this script reads the data from the sqlite database and fills it into the tem
 
 veeam  
 sqlite3 (>= 3.7.0)  
-curl (only for vee-mail update check)  
+curl (to send mail and/or to check for updates)  
 sendmail (your system should be able to send mails with sendmail command - postfix, bsd-mailx, nullmailer,...)
+
+By default sendmail is used to send the report.  
+If you choose to use curl to send the report (USECURL=1 in config file) then sendmail is not necessary and won't be installed.  
 
 # Install
 
@@ -26,6 +29,9 @@ You can use the vee-mail script as a post-backup script directly in veeam (Confi
 /opt/vee-mail/vee-mail.sh
 
 # Release notes
+
+## Version 0.5.37
+offer use of curl instead of sendmail (sendmail is still the default)
 
 ## Version 0.5.36
 remove dateutils dependancy
