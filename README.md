@@ -9,7 +9,6 @@ So this script reads the data from the sqlite database and fills it into the tem
 
 veeam  
 sqlite3 (>= 3.7.0)  
-bc  
 curl (only for vee-mail update check)  
 sendmail (your system should be able to send mails with sendmail command - postfix, bsd-mailx, nullmailer,...)
 dateutils
@@ -28,6 +27,9 @@ You can use the vee-mail script as a post-backup script directly in veeam (Confi
 /opt/vee-mail/vee-mail.sh
 
 # Release notes
+
+## Version 0.5.35
+remove bc dependancy
 
 ## Version 0.5.34
 new version check against github
