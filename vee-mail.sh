@@ -1,6 +1,6 @@
 #!/bin/bash
 
-VERSION=0.5.35
+VERSION=0.5.36
 HDIR=$(dirname "$0")
 DEBUG=0
 INFOMAIL=1
@@ -67,15 +67,6 @@ if [ "$SENDMAIL" != "/usr/sbin/sendmail" ] && [ "$SENDMAIL" != "/bin/sendmail" ]
   yum install -y sendmail
  else
   apt-get install -y sendmail
- fi
-fi
-
-DATEUTILS_DDIFF=$(which dateutils.ddiff)
-if [ "$DATEUTILS_DDIFF" != "/usr/bin/dateutils.ddiff" ] && [ "$DATEUTILS_DDIFF" != "/bin/dateutils.ddiff" ]; then
- if [ "$YUM" ]; then
-  yum install -y dateutils
- else
-  apt-get install -y dateutils
  fi
 fi
 
@@ -216,7 +207,8 @@ if [ "$TARGETLOAD" -gt "$SOURCELOAD" ] && [ "$TARGETLOAD" -gt "$SOURCEPLOAD" ] &
  BOTTLENECK="Target"
 fi
 
-DURATION=$($DATEUTILS_DDIFF -i %s -f "%H:%M:%S" "$STARTTIME" "$ENDTIME")
+let DUR=ENDTIME-STARTTIME DURATIONSEC=DUR%60 DURATIONMIN=\(DUR-DURATIONSEC\)/60%60 DURATIONHOUR=\(DUR-DURATIONSEC-\(DURATIONMIN*60\)\)/3600
+DURATION=$(printf "%d:%02d:%02d\n" $DURATIONHOUR $DURATIONMIN $DURATIONSEC)
 START=$(date -d "@$STARTTIME" +"%A, %d %B %Y %H:%M:%S")
 END=$(date -d "@$ENDTIME" +"%A, %d.%m.%Y %H:%M:%S")
 STIME=$(date -d "@$STARTTIME" +"%H:%M:%S")
