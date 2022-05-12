@@ -1,6 +1,6 @@
 #!/bin/bash
 
-VERSION=0.5.36
+VERSION=0.5.37
 HDIR=$(dirname "$0")
 DEBUG=0
 INFOMAIL=1
@@ -15,8 +15,43 @@ fi
 
 . $HDIR/vee-mail.config
 
+VC=$(which veeamconfig)
+if [ ! "$VC" ]; then
+ echo "No Veeam Agent for Linux installed!"
+ logger -t vee-mail "No Veeam Agent for Linux installed!"
+ exit
+fi
+
+YUM=$(which yum)
+
+SQLITE=$(which sqlite3)
+if [ "$SQLITE" != "/usr/bin/sqlite3" ] && [ "$SQLITE" != "/bin/sqlite3" ]; then
+ if [ "$YUM" ]; then
+  yum install -y sqlite3
+ else
+  apt-get install -y sqlite3
+ fi
+fi
+
+CURL=$(which curl)
+if [ $USECURL -eq 1 ] && [ ! "$CURL" ]; then
+ if [ "$YUM" ]; then
+  yum install -y curl
+ else
+  apt-get install -y curl
+ fi
+fi
+
+SENDMAIL=$(which sendmail)
+if [ $USECURL -ne 1 ] &&[ "$SENDMAIL" != "/usr/sbin/sendmail" ] && [ "$SENDMAIL" != "/bin/sendmail" ]; then
+ if [ "$YUM" ]; then
+  yum install -y sendmail
+ else
+  apt-get install -y sendmail
+ fi
+fi
+
 if [ $SKIPVERSIONCHECK -ne 1 ]; then
- CURL=$(which curl)
  if [ "$CURL" ]; then
   AKTVERSION=$($CURL -m2 -f -s https://raw.githubusercontent.com/grufocom/vee-mail/master/vee-mail.sh --stderr - | grep "^VERSION=" | awk -F'=' '{print $2}')
   if [ "$AKTVERSION" ]; then
@@ -43,32 +78,6 @@ if [ "$1" == "--bg" ]; then
  fi
 fi
 
-VC=$(which veeamconfig)
-if [ ! "$VC" ]; then
- echo "No Veeam Agent for Linux installed!"
- logger -t vee-mail "No Veeam Agent for Linux installed!"
- exit
-fi
-
-YUM=$(which yum)
-
-SQLITE=$(which sqlite3)
-if [ "$SQLITE" != "/usr/bin/sqlite3" ] && [ "$SQLITE" != "/bin/sqlite3" ]; then
- if [ "$YUM" ]; then
-  yum install -y sqlite3
- else
-  apt-get install -y sqlite3
- fi
-fi
-
-SENDMAIL=$(which sendmail)
-if [ "$SENDMAIL" != "/usr/sbin/sendmail" ] && [ "$SENDMAIL" != "/bin/sendmail" ]; then
- if [ "$YUM" ]; then
-  yum install -y sendmail
- else
-  apt-get install -y sendmail
- fi
-fi
 
 AGENT=$($VC -v)
 # get last session id
@@ -256,7 +265,26 @@ fi
 sed -e "s/XXXJOBNAMEXXX/$JOBNAME/g" -e "s/XXXHOSTNAMEXXX/$HN/g" -e "s/XXXSTATXXX/$STAT/g" -e "s/XXXBGCOLORXXX/$BGCOLOR/g" -e "s/XXXBACKUPDATETIMEXXX/$START/g" -e "s/XXXSUCCESSXXX/$SUCCESS/g" -e "s/XXXERRORXXX/$ERROR/g" -e "s/XXXWARNINGXXX/$WARNING/g" -e "s/XXXSTARTXXX/$STIME/g" -e "s/XXXENDXXX/$ETIME/g" -e "s/XXXDATAREADXXX/$READ/g" -e "s/XXXREADXXX/$READ/g" -e "s/XXXTRANSFERREDXXX/$TRANSFERRED/g" -e "s/XXXDURATIONXXX/$DURATION/g" -e "s/XXXSTATUSXXX/$STAT/g" -e "s/XXXTOTALSIZEXXX/$PROCESSED/g" -e "s/XXXBOTTLENECKXXX/$BOTTLENECK/g" -e "s|XXXDETAILSXXX|$ERRLOG|g" -e "s/XXXRATEXXX/$SPEED MB\/s/g" -e "s/XXXBACKUPSIZEXXX/$TRANSFERRED/g" -e "s/XXXAGENTXXX/$AGENT/g" -e "s|XXXTARGETXXX|$TARGET|g" -e "s|XXXFSTXXX|$FST|g" -e "s|XXXLOGINXXX|$LOGIN|g" -e "s|XXXDOMAINXXX|$DOMAIN|g" -e "s|XXXVERSIONXXX|$VERSION|g" -e "s|XXXAKTVERSIONXXX|$AKTVERSION|g" -e "s|XXXDISKSIZEXXX|$DEVSIZE|g" -e "s|XXXDISKUSEDXXX|$DEVUSED|g" -e "s|XXXDISKAVAILXXX|$DEVAVAIL|g" -e "s|XXXDISKUSEPXXX|$DEVUSEP|g" $HTMLTEMPLATE >> $TEMPFILE 
 # send email
 if [ $SENDM -eq 1 ]; then
- cat $TEMPFILE | sendmail -f $EMAILFROM -t
+ if [ $USECURL -eq 1 ]; then
+
+  CURLPARAMS=""
+
+  if [ "$CURLUSERNAME" ]; then
+   CURLPARAMS=" $CURLPARAMS --user \"$CURLUSERNAME:$CURLPASSWORD\""
+  fi
+
+  if [ $CURLSTARTTLS -eq 1 ]; then
+   CURLPARAMS=" $CURLPARAMS --ssl-reqd"
+  fi
+
+  if [ $CURLINSECURE -eq 1 ]; then
+   CURLPARAMS=" $CURLPARAMS --insecure"
+  fi
+
+  $CURL -sS --url $CURLSMTPSERVER --mail-from $EMAILFROM --mail-rcpt $EMAILTO --upload-file $TEMPFILE $CURLPARAMS
+ else
+  cat $TEMPFILE | $SENDMAIL -f $EMAILFROM -t
+ fi
 fi
 rm $TEMPFILE
 
