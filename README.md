@@ -30,6 +30,9 @@ You can use the vee-mail script as a post-backup script directly in veeam (Confi
 
 # Release notes
 
+## Version 0.5.38
+fix message blank line ending header following RFC (fix reception by outlook.com)
+
 ## Version 0.5.37
 offer use of curl instead of sendmail (sendmail is still the default)
 
