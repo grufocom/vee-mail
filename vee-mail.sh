@@ -1,6 +1,6 @@
 #!/bin/bash
 
-VERSION=0.5.38
+VERSION=0.5.39
 HDIR=$(dirname "$0")
 DEBUG=0
 INFOMAIL=1
@@ -55,7 +55,7 @@ if [ $SKIPVERSIONCHECK -ne 1 ]; then
  if [ "$CURL" ]; then
   AKTVERSION=$($CURL -m2 -f -s https://raw.githubusercontent.com/grufocom/vee-mail/master/vee-mail.sh --stderr - | grep "^VERSION=" | awk -F'=' '{print $2}')
   if [ "$AKTVERSION" ]; then
-   HIGHESTVERSION=$(echo "$VERSION\n$AKTVERSION" | sort -rV | head -n1)
+   HIGHESTVERSION=$(echo -e "$VERSION\n$AKTVERSION" | sort -rV | head -n1)
    if [ "$VERSION" != "$HIGHESTVERSION" ]; then
     logger -t vee-mail "new Vee-Mail version $AKTVERSION available"
     AKTVERSION="\(new Vee-Mail version $AKTVERSION available\)"
