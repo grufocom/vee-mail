@@ -30,6 +30,9 @@ You can use the vee-mail script as a post-backup script directly in veeam (Confi
 
 # Release notes
 
+## Version 0.5.40
+Fix password issue
+
 ## Version 0.5.39
 Bugfix version check
 

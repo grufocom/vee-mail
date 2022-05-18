@@ -1,6 +1,6 @@
 #!/bin/bash
 
-VERSION=0.5.39
+VERSION=0.5.40
 HDIR=$(dirname "$0")
 DEBUG=0
 INFOMAIL=1
@@ -269,10 +269,6 @@ if [ $SENDM -eq 1 ]; then
 
   CURLPARAMS=""
 
-  if [ "$CURLUSERNAME" ]; then
-   CURLPARAMS=" $CURLPARAMS --user \"$CURLUSERNAME:$CURLPASSWORD\""
-  fi
-
   if [ $CURLSTARTTLS -eq 1 ]; then
    CURLPARAMS=" $CURLPARAMS --ssl-reqd"
   fi
@@ -281,7 +277,7 @@ if [ $SENDM -eq 1 ]; then
    CURLPARAMS=" $CURLPARAMS --insecure"
   fi
 
-  $CURL -sS --url $CURLSMTPSERVER --mail-from $EMAILFROM --mail-rcpt $EMAILTO --upload-file $TEMPFILE $CURLPARAMS
+  $CURL -sS --url $CURLSMTPSERVER --mail-from $EMAILFROM --mail-rcpt $EMAILTO --upload-file $TEMPFILE ${CURLUSERNAME:+-u $CURLUSERNAME:"$CURLPASSWORD"} $CURLPARAMS
  else
   cat $TEMPFILE | $SENDMAIL -f $EMAILFROM -t
  fi
