@@ -1,6 +1,6 @@
 #!/bin/bash
 
-VERSION=0.5.40
+VERSION=0.5.41
 HDIR=$(dirname "$0")
 DEBUG=0
 INFOMAIL=1
@@ -14,6 +14,14 @@ if [[ $EUID -ne 0 ]]; then
 fi
 
 . $HDIR/vee-mail.config
+
+STARTEDFROM=$(ps -p $PPID -hco cmd)
+if [ "$1" == "--bg" ]; then
+ if [ "$STARTEDFROM" == "veeamjobman" ]; then
+  logger -t vee-mail "waiting for 30 seconds"
+  sleep 30
+ fi
+fi
 
 VC=$(which veeamconfig)
 if [ ! "$VC" ]; then
@@ -70,15 +78,6 @@ else
  VERSION="$VERSION \(upgrade check disabled\)"
 fi
 
-STARTEDFROM=$(ps -p $PPID -hco cmd)
-if [ "$1" == "--bg" ]; then
- if [ "$STARTEDFROM" == "veeamjobman" ]; then
-  logger -t vee-mail "waiting for 30 seconds"
-  sleep 30
- fi
-fi
-
-
 AGENT=$($VC -v)
 # get last session id
 SESSID=$($VC session list|grep -v "Total amount"|tail -1|awk '{print $(NF-5)}')
@@ -114,10 +113,10 @@ if [ "$JOBID" ]; then
   FST=$(mount |grep " $TARGET "|awk '{print $5}')
   FSD=$(mount |grep " $TARGET "|awk '{print $1}')
   # Filesystem      Size  Used Avail Use% Mounted on
-  DEVSIZE=$(df -hP|grep "$TARGET$"|awk '{print $2}'|sed -e "s/,/\./g" -e "s/M/ M/g" -e "s/G/ G/g" -e "s/T/ T/g" -e "s/P/ P/g")
-  DEVUSED=$(df -hP|grep "$TARGET$"|awk '{print $3}'|sed -e "s/,/\./g" -e "s/M/ M/g" -e "s/G/ G/g" -e "s/T/ T/g" -e "s/P/ P/g")
-  DEVAVAIL=$(df -hP|grep "$TARGET$"|awk '{print $4}'|sed -e "s/,/\./g" -e "s/M/ M/g" -e "s/G/ G/g" -e "s/T/ T/g" -e "s/P/ P/g")
-  DEVUSEP=$(df -hP|grep "$TARGET$"|awk '{print $5}'|sed -e "s/,/\./g" -e "s/M/ M/g" -e "s/G/ G/g" -e "s/T/ T/g" -e "s/P/ P/g")
+  DEVSIZE=$(df -hP "$TARGET$"|awk '{print $2}'|sed -e "s/,/\./g" -e "s/M/ M/g" -e "s/G/ G/g" -e "s/T/ T/g" -e "s/P/ P/g")
+  DEVUSED=$(df -hP "$TARGET$"|awk '{print $3}'|sed -e "s/,/\./g" -e "s/M/ M/g" -e "s/G/ G/g" -e "s/T/ T/g" -e "s/P/ P/g")
+  DEVAVAIL=$(df -hP "$TARGET$"|awk '{print $4}'|sed -e "s/,/\./g" -e "s/M/ M/g" -e "s/G/ G/g" -e "s/T/ T/g" -e "s/P/ P/g")
+  DEVUSEP=$(df -hP "$TARGET$"|awk '{print $5}'|sed -e "s/,/\./g" -e "s/M/ M/g" -e "s/G/ G/g" -e "s/T/ T/g" -e "s/P/ P/g")
   LOGIN=""
   DOMAIN=""
   LOCALDEV=1
@@ -127,10 +126,10 @@ if [ "$JOBID" ]; then
    MPOINT=$(mktemp -d)
    mount -t cifs -o username=$SMBUSER,password=$SMBPWD,domain=$DOMAIN //$TARGET $MPOINT
    # Filesystem      Size  Used Avail Use% Mounted on
-   DEVSIZE=$(df -hP|grep "$MPOINT$"|awk '{print $2}'|sed -e "s/,/\./g" -e "s/M/ M/g" -e "s/G/ G/g" -e "s/T/ T/g" -e "s/P/ P/g")
-   DEVUSED=$(df -hP|grep "$MPOINT$"|awk '{print $3}'|sed -e "s/,/\./g" -e "s/M/ M/g" -e "s/G/ G/g" -e "s/T/ T/g" -e "s/P/ P/g")
-   DEVAVAIL=$(df -hP|grep "$MPOINT$"|awk '{print $4}'|sed -e "s/,/\./g" -e "s/M/ M/g" -e "s/G/ G/g" -e "s/T/ T/g" -e "s/P/ P/g")
-   DEVUSEP=$(df -hP|grep "$MPOINT$"|awk '{print $5}'|sed -e "s/,/\./g" -e "s/M/ M/g" -e "s/G/ G/g" -e "s/T/ T/g" -e "s/P/ P/g")
+   DEVSIZE=$(df -hP "$MPOINT$"|awk '{print $2}'|sed -e "s/,/\./g" -e "s/M/ M/g" -e "s/G/ G/g" -e "s/T/ T/g" -e "s/P/ P/g")
+   DEVUSED=$(df -hP "$MPOINT$"|awk '{print $3}'|sed -e "s/,/\./g" -e "s/M/ M/g" -e "s/G/ G/g" -e "s/T/ T/g" -e "s/P/ P/g")
+   DEVAVAIL=$(df -hP "$MPOINT$"|awk '{print $4}'|sed -e "s/,/\./g" -e "s/M/ M/g" -e "s/G/ G/g" -e "s/T/ T/g" -e "s/P/ P/g")
+   DEVUSEP=$(df -hP "$MPOINT$"|awk '{print $5}'|sed -e "s/,/\./g" -e "s/M/ M/g" -e "s/G/ G/g" -e "s/T/ T/g" -e "s/P/ P/g")
    umount $MPOINT
    rmdir $MPOINT
   fi
@@ -139,10 +138,10 @@ if [ "$JOBID" ]; then
   MPOINT=$(mktemp -d)
   mount -t nfs $TARGET $MPOINT
   # Filesystem      Size  Used Avail Use% Mounted on
-  DEVSIZE=$(df -hP|grep "$MPOINT$"|awk '{print $2}'|sed -e "s/,/\./g" -e "s/M/ M/g" -e "s/G/ G/g" -e "s/T/ T/g" -e "s/P/ P/g")
-  DEVUSED=$(df -hP|grep "$MPOINT$"|awk '{print $3}'|sed -e "s/,/\./g" -e "s/M/ M/g" -e "s/G/ G/g" -e "s/T/ T/g" -e "s/P/ P/g")
-  DEVAVAIL=$(df -hP|grep "$MPOINT$"|awk '{print $4}'|sed -e "s/,/\./g" -e "s/M/ M/g" -e "s/G/ G/g" -e "s/T/ T/g" -e "s/P/ P/g")
-  DEVUSEP=$(df -hP|grep "$MPOINT$"|awk '{print $5}'|sed -e "s/,/\./g" -e "s/M/ M/g" -e "s/G/ G/g" -e "s/T/ T/g" -e "s/P/ P/g")
+  DEVSIZE=$(df -hP "$MPOINT$"|awk '{print $2}'|sed -e "s/,/\./g" -e "s/M/ M/g" -e "s/G/ G/g" -e "s/T/ T/g" -e "s/P/ P/g")
+  DEVUSED=$(df -hP "$MPOINT$"|awk '{print $3}'|sed -e "s/,/\./g" -e "s/M/ M/g" -e "s/G/ G/g" -e "s/T/ T/g" -e "s/P/ P/g")
+  DEVAVAIL=$(df -hP "$MPOINT$"|awk '{print $4}'|sed -e "s/,/\./g" -e "s/M/ M/g" -e "s/G/ G/g" -e "s/T/ T/g" -e "s/P/ P/g")
+  DEVUSEP=$(df -hP "$MPOINT$"|awk '{print $5}'|sed -e "s/,/\./g" -e "s/M/ M/g" -e "s/G/ G/g" -e "s/T/ T/g" -e "s/P/ P/g")
   umount $MPOINT
   rmdir $MPOINT
  fi
