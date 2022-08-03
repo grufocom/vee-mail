@@ -30,6 +30,9 @@ You can use the vee-mail script as a post-backup script directly in veeam (Confi
 
 # Release notes
 
+## Version 0.5.42
+df does not understand regex, so we need a grep to get only the path we need
+
 ## Version 0.5.41
 df without grep and going into background directly after reading config file
 
