@@ -1,6 +1,6 @@
 #!/bin/bash
 
-VERSION=0.5.41
+VERSION=0.5.42
 HDIR=$(dirname "$0")
 DEBUG=0
 INFOMAIL=1
@@ -113,10 +113,10 @@ if [ "$JOBID" ]; then
   FST=$(mount |grep " $TARGET "|awk '{print $5}')
   FSD=$(mount |grep " $TARGET "|awk '{print $1}')
   # Filesystem      Size  Used Avail Use% Mounted on
-  DEVSIZE=$(df -hP "$TARGET$"|awk '{print $2}'|sed -e "s/,/\./g" -e "s/M/ M/g" -e "s/G/ G/g" -e "s/T/ T/g" -e "s/P/ P/g")
-  DEVUSED=$(df -hP "$TARGET$"|awk '{print $3}'|sed -e "s/,/\./g" -e "s/M/ M/g" -e "s/G/ G/g" -e "s/T/ T/g" -e "s/P/ P/g")
-  DEVAVAIL=$(df -hP "$TARGET$"|awk '{print $4}'|sed -e "s/,/\./g" -e "s/M/ M/g" -e "s/G/ G/g" -e "s/T/ T/g" -e "s/P/ P/g")
-  DEVUSEP=$(df -hP "$TARGET$"|awk '{print $5}'|sed -e "s/,/\./g" -e "s/M/ M/g" -e "s/G/ G/g" -e "s/T/ T/g" -e "s/P/ P/g")
+  DEVSIZE=$(df -hP "$TARGET"|grep -e "$TARGET$"|awk '{print $2}'|sed -e "s/,/\./g" -e "s/M/ M/g" -e "s/G/ G/g" -e "s/T/ T/g" -e "s/P/ P/g")
+  DEVUSED=$(df -hP "$TARGET"|grep -e "$TARGET$"|awk '{print $3}'|sed -e "s/,/\./g" -e "s/M/ M/g" -e "s/G/ G/g" -e "s/T/ T/g" -e "s/P/ P/g")
+  DEVAVAIL=$(df -hP "$TARGET"|grep -e "$TARGET$"|awk '{print $4}'|sed -e "s/,/\./g" -e "s/M/ M/g" -e "s/G/ G/g" -e "s/T/ T/g" -e "s/P/ P/g")
+  DEVUSEP=$(df -hP "$TARGET"|grep -e "$TARGET$"|awk '{print $5}'|sed -e "s/,/\./g" -e "s/M/ M/g" -e "s/G/ G/g" -e "s/T/ T/g" -e "s/P/ P/g")
   LOGIN=""
   DOMAIN=""
   LOCALDEV=1
@@ -126,10 +126,10 @@ if [ "$JOBID" ]; then
    MPOINT=$(mktemp -d)
    mount -t cifs -o username=$SMBUSER,password=$SMBPWD,domain=$DOMAIN //$TARGET $MPOINT
    # Filesystem      Size  Used Avail Use% Mounted on
-   DEVSIZE=$(df -hP "$MPOINT$"|awk '{print $2}'|sed -e "s/,/\./g" -e "s/M/ M/g" -e "s/G/ G/g" -e "s/T/ T/g" -e "s/P/ P/g")
-   DEVUSED=$(df -hP "$MPOINT$"|awk '{print $3}'|sed -e "s/,/\./g" -e "s/M/ M/g" -e "s/G/ G/g" -e "s/T/ T/g" -e "s/P/ P/g")
-   DEVAVAIL=$(df -hP "$MPOINT$"|awk '{print $4}'|sed -e "s/,/\./g" -e "s/M/ M/g" -e "s/G/ G/g" -e "s/T/ T/g" -e "s/P/ P/g")
-   DEVUSEP=$(df -hP "$MPOINT$"|awk '{print $5}'|sed -e "s/,/\./g" -e "s/M/ M/g" -e "s/G/ G/g" -e "s/T/ T/g" -e "s/P/ P/g")
+   DEVSIZE=$(df -hP "$MPOINT"|grep -e "$MPOINT$"|awk '{print $2}'|sed -e "s/,/\./g" -e "s/M/ M/g" -e "s/G/ G/g" -e "s/T/ T/g" -e "s/P/ P/g")
+   DEVUSED=$(df -hP "$MPOINT"|grep -e "$MPOINT$"|awk '{print $3}'|sed -e "s/,/\./g" -e "s/M/ M/g" -e "s/G/ G/g" -e "s/T/ T/g" -e "s/P/ P/g")
+   DEVAVAIL=$(df -hP "$MPOINT"|grep -e "$MPOINT$"|awk '{print $4}'|sed -e "s/,/\./g" -e "s/M/ M/g" -e "s/G/ G/g" -e "s/T/ T/g" -e "s/P/ P/g")
+   DEVUSEP=$(df -hP "$MPOINT"|grep -e "$MPOINT$"|awk '{print $5}'|sed -e "s/,/\./g" -e "s/M/ M/g" -e "s/G/ G/g" -e "s/T/ T/g" -e "s/P/ P/g")
    umount $MPOINT
    rmdir $MPOINT
   fi
@@ -138,10 +138,10 @@ if [ "$JOBID" ]; then
   MPOINT=$(mktemp -d)
   mount -t nfs $TARGET $MPOINT
   # Filesystem      Size  Used Avail Use% Mounted on
-  DEVSIZE=$(df -hP "$MPOINT$"|awk '{print $2}'|sed -e "s/,/\./g" -e "s/M/ M/g" -e "s/G/ G/g" -e "s/T/ T/g" -e "s/P/ P/g")
-  DEVUSED=$(df -hP "$MPOINT$"|awk '{print $3}'|sed -e "s/,/\./g" -e "s/M/ M/g" -e "s/G/ G/g" -e "s/T/ T/g" -e "s/P/ P/g")
-  DEVAVAIL=$(df -hP "$MPOINT$"|awk '{print $4}'|sed -e "s/,/\./g" -e "s/M/ M/g" -e "s/G/ G/g" -e "s/T/ T/g" -e "s/P/ P/g")
-  DEVUSEP=$(df -hP "$MPOINT$"|awk '{print $5}'|sed -e "s/,/\./g" -e "s/M/ M/g" -e "s/G/ G/g" -e "s/T/ T/g" -e "s/P/ P/g")
+  DEVSIZE=$(df -hP "$MPOINT$"|grep -e "$MPOINT$"|awk '{print $2}'|sed -e "s/,/\./g" -e "s/M/ M/g" -e "s/G/ G/g" -e "s/T/ T/g" -e "s/P/ P/g")
+  DEVUSED=$(df -hP "$MPOINT$"|grep -e "$MPOINT$"|awk '{print $3}'|sed -e "s/,/\./g" -e "s/M/ M/g" -e "s/G/ G/g" -e "s/T/ T/g" -e "s/P/ P/g")
+  DEVAVAIL=$(df -hP "$MPOINT$"|grep -e "$MPOINT$"|awk '{print $4}'|sed -e "s/,/\./g" -e "s/M/ M/g" -e "s/G/ G/g" -e "s/T/ T/g" -e "s/P/ P/g")
+  DEVUSEP=$(df -hP "$MPOINT$"|grep -e "$MPOINT$"|awk '{print $5}'|sed -e "s/,/\./g" -e "s/M/ M/g" -e "s/G/ G/g" -e "s/T/ T/g" -e "s/P/ P/g")
   umount $MPOINT
   rmdir $MPOINT
  fi
