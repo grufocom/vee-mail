@@ -30,6 +30,9 @@ You can use the vee-mail script as a post-backup script directly in veeam (Confi
 
 # Release notes
 
+## Version 0.5.41
+df without grep and going into background directly after reading config file
+
 ## Version 0.5.40
 Fix password issue
 
