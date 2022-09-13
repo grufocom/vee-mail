@@ -1,6 +1,6 @@
 #!/bin/bash
 
-VERSION=0.5.42
+VERSION=0.5.43
 HDIR=$(dirname "$0")
 DEBUG=0
 INFOMAIL=1
@@ -85,17 +85,18 @@ SESSID=${SESSID:1:${#SESSID}-2}
 
 # state 1=Running, 6=Success, 7=Failed, 9=Warning
 # get data from sqlite db
-SESSDATA=$(sqlite3 /var/lib/veeam/veeam_db.sqlite  "select start_time, end_time, state, progress_details, job_id from JobSessions order by start_time DESC limit 1;")
+SESSDATA=$(sqlite3 /var/lib/veeam/veeam_db.sqlite  "select start_time, end_time, state, progress_details, job_id, job_name from JobSessions order by start_time DESC limit 1;")
 
 STARTTIME=$(echo $SESSDATA|awk -F'|' '{print $1}')
 ENDTIME=$(echo $SESSDATA|awk -F'|' '{print $2}')
 STATE=$(echo $SESSDATA|awk -F'|' '{print $3}')
 DETAILS=$(echo $SESSDATA|awk -F'|' '{print $4}')
 JOBID=$(echo $SESSDATA|awk -F'|' '{print $5}')
+JOBNAME=$(echo $SESSDATA|awk -F'|' '{print $6}')
 
 if [ $DEBUG -gt 0 ]; then
- echo -e -n "STARTTIME: $STARTTIME, ENDTIME: $ENDTIME, STATE: $STATE, JOBID: $JOBID\nDETAILS: $DETAILS\n"
- logger -t vee-mail "STARTTIME: $STARTTIME, ENDTIME: $ENDTIME, STATE: $STATE, JOBID: $JOBID\nDETAILS: $DETAILS"
+ echo -e -n "STARTTIME: $STARTTIME, ENDTIME: $ENDTIME, STATE: $STATE, JOBID: $JOBID, JOBNAME: $JOBNAME\nDETAILS: $DETAILS\n"
+ logger -t vee-mail "STARTTIME: $STARTTIME, ENDTIME: $ENDTIME, STATE: $STATE, JOBID: $JOBID, JOBNAME: $JOBNAME\nDETAILS: $DETAILS"
 fi
 
 if [ "$JOBID" ]; then
