@@ -110,13 +110,14 @@ if [ "$JOBID" ]; then
  fi
  if [ ! "$TARGET" ]; then
   TARGET=$(echo $RAWTARGET|awk -F'DeviceMountPoint="' '{print $2}'|awk -F'"' '{print $1}')
-  FST=$(mount |grep " $TARGET "|awk '{print $5}')
-  FSD=$(mount |grep " $TARGET "|awk '{print $1}')
+  AWKTARGET=$(echo $TARGET | sed 's@/@\\/@g')
+  FST=$(mount | awk "\$3 ~ /^${AWKTARGET}\$/ {print \$5}")
+  FSD=$(mount | awk "\$3 ~ /^${AWKTARGET}\$/ {print \$1}")
   # Filesystem      Size  Used Avail Use% Mounted on
-  DEVSIZE=$(df -hP "$TARGET"|grep -e "$TARGET$"|awk '{print $2}'|sed -e "s/,/\./g" -e "s/M/ M/g" -e "s/G/ G/g" -e "s/T/ T/g" -e "s/P/ P/g")
-  DEVUSED=$(df -hP "$TARGET"|grep -e "$TARGET$"|awk '{print $3}'|sed -e "s/,/\./g" -e "s/M/ M/g" -e "s/G/ G/g" -e "s/T/ T/g" -e "s/P/ P/g")
-  DEVAVAIL=$(df -hP "$TARGET"|grep -e "$TARGET$"|awk '{print $4}'|sed -e "s/,/\./g" -e "s/M/ M/g" -e "s/G/ G/g" -e "s/T/ T/g" -e "s/P/ P/g")
-  DEVUSEP=$(df -hP "$TARGET"|grep -e "$TARGET$"|awk '{print $5}'|sed -e "s/,/\./g" -e "s/M/ M/g" -e "s/G/ G/g" -e "s/T/ T/g" -e "s/P/ P/g")
+  DEVSIZE=$(df -hP | awk "\$6 ~ /^${AWKTARGET}\$/ {print \$2}" | sed -e "s/,/\./g" -e "s/M/ M/g" -e "s/G/ G/g" -e "s/T/ T/g" -e "s/P/ P/g")
+  DEVUSED=$(df -hP | awk "\$6 ~ /^${AWKTARGET}\$/ {print \$3}" | sed -e "s/,/\./g" -e "s/M/ M/g" -e "s/G/ G/g" -e "s/T/ T/g" -e "s/P/ P/g")
+  DEVAVAIL=$(df -hP | awk "\$6 ~ /^${AWKTARGET}\$/ {print \$4}" | sed -e "s/,/\./g" -e "s/M/ M/g" -e "s/G/ G/g" -e "s/T/ T/g" -e "s/P/ P/g")
+  DEVUSEP=$(df -hP | awk "\$6 ~ /^${AWKTARGET}\$/ {print \$5}" | sed -e "s/,/\./g" -e "s/M/ M/g" -e "s/G/ G/g" -e "s/T/ T/g" -e "s/P/ P/g")
   LOGIN=""
   DOMAIN=""
   LOCALDEV=1
@@ -124,12 +125,13 @@ if [ "$JOBID" ]; then
  if [ "$FST" == "cifs" ] || [ "$FST" == "smb" ] && [ "$LOCALDEV" != "1" ]; then
   if [ "$SMBUSER" ] && [ "$SMBPWD" ]; then
    MPOINT=$(mktemp -d)
+   AWKMPOINT=$(echo $MPOINT | sed 's@/@\\/@g')
    mount -t cifs -o username=$SMBUSER,password=$SMBPWD,domain=$DOMAIN //$TARGET $MPOINT
    # Filesystem      Size  Used Avail Use% Mounted on
-   DEVSIZE=$(df -hP "$MPOINT"|grep -e "$MPOINT$"|awk '{print $2}'|sed -e "s/,/\./g" -e "s/M/ M/g" -e "s/G/ G/g" -e "s/T/ T/g" -e "s/P/ P/g")
-   DEVUSED=$(df -hP "$MPOINT"|grep -e "$MPOINT$"|awk '{print $3}'|sed -e "s/,/\./g" -e "s/M/ M/g" -e "s/G/ G/g" -e "s/T/ T/g" -e "s/P/ P/g")
-   DEVAVAIL=$(df -hP "$MPOINT"|grep -e "$MPOINT$"|awk '{print $4}'|sed -e "s/,/\./g" -e "s/M/ M/g" -e "s/G/ G/g" -e "s/T/ T/g" -e "s/P/ P/g")
-   DEVUSEP=$(df -hP "$MPOINT"|grep -e "$MPOINT$"|awk '{print $5}'|sed -e "s/,/\./g" -e "s/M/ M/g" -e "s/G/ G/g" -e "s/T/ T/g" -e "s/P/ P/g")
+   DEVSIZE=$(df -hP | awk "\$6 ~ /^${AWKMPOINT}\$/ {print \$2}" | sed -e "s/,/\./g" -e "s/M/ M/g" -e "s/G/ G/g" -e "s/T/ T/g" -e "s/P/ P/g")
+   DEVUSED=$(df -hP | awk "\$6 ~ /^${AWKMPOINT}\$/ {print \$3}" | sed -e "s/,/\./g" -e "s/M/ M/g" -e "s/G/ G/g" -e "s/T/ T/g" -e "s/P/ P/g")
+   DEVAVAIL=$(df -hP | awk "\$6 ~ /^${AWKMPOINT}\$/ {print \$4}" | sed -e "s/,/\./g" -e "s/M/ M/g" -e "s/G/ G/g" -e "s/T/ T/g" -e "s/P/ P/g")
+   DEVUSEP=$(df -hP | awk "\$6 ~ /^${AWKMPOINT}\$/ {print \$5}" | sed -e "s/,/\./g" -e "s/M/ M/g" -e "s/G/ G/g" -e "s/T/ T/g" -e "s/P/ P/g")
    umount $MPOINT
    rmdir $MPOINT
   fi
@@ -137,11 +139,12 @@ if [ "$JOBID" ]; then
  if [ "$FST" == "nfs" ] && [ "$LOCALDEV" != "1" ]; then
   MPOINT=$(mktemp -d)
   mount -t nfs $TARGET $MPOINT
+  AWKMPOINT=$(echo $MPOINT | sed 's@/@\\/@g')
   # Filesystem      Size  Used Avail Use% Mounted on
-  DEVSIZE=$(df -hP "$MPOINT$"|grep -e "$MPOINT$"|awk '{print $2}'|sed -e "s/,/\./g" -e "s/M/ M/g" -e "s/G/ G/g" -e "s/T/ T/g" -e "s/P/ P/g")
-  DEVUSED=$(df -hP "$MPOINT$"|grep -e "$MPOINT$"|awk '{print $3}'|sed -e "s/,/\./g" -e "s/M/ M/g" -e "s/G/ G/g" -e "s/T/ T/g" -e "s/P/ P/g")
-  DEVAVAIL=$(df -hP "$MPOINT$"|grep -e "$MPOINT$"|awk '{print $4}'|sed -e "s/,/\./g" -e "s/M/ M/g" -e "s/G/ G/g" -e "s/T/ T/g" -e "s/P/ P/g")
-  DEVUSEP=$(df -hP "$MPOINT$"|grep -e "$MPOINT$"|awk '{print $5}'|sed -e "s/,/\./g" -e "s/M/ M/g" -e "s/G/ G/g" -e "s/T/ T/g" -e "s/P/ P/g")
+  DEVSIZE=$(df -hP | awk "\$6 ~ /^${AWKMPOINT}\$/ {print \$2}" | sed -e "s/,/\./g" -e "s/M/ M/g" -e "s/G/ G/g" -e "s/T/ T/g" -e "s/P/ P/g")
+  DEVUSED=$(df -hP | awk "\$6 ~ /^${AWKMPOINT}\$/ {print \$3}" | sed -e "s/,/\./g" -e "s/M/ M/g" -e "s/G/ G/g" -e "s/T/ T/g" -e "s/P/ P/g")
+  DEVAVAIL=$(df -hP | awk "\$6 ~ /^${AWKMPOINT}\$/ {print \$4}" | sed -e "s/,/\./g" -e "s/M/ M/g" -e "s/G/ G/g" -e "s/T/ T/g" -e "s/P/ P/g")
+  DEVUSEP=$(df -hP | awk "\$6 ~ /^${AWKMPOINT}\$/ {print \$5}" | sed -e "s/,/\./g" -e "s/M/ M/g" -e "s/G/ G/g" -e "s/T/ T/g" -e "s/P/ P/g")
   umount $MPOINT
   rmdir $MPOINT
  fi
