@@ -112,8 +112,8 @@ if [ "$JOBID" ]; then
  if [ ! "$TARGET" ]; then
   TARGET=$(echo $RAWTARGET|awk -F'DeviceMountPoint="' '{print $2}'|awk -F'"' '{print $1}')
   AWKTARGET=$(echo $TARGET | sed 's@/@\\/@g')
-  FST=$(mount | awk "\$3 ~ /^${AWKTARGET}\$/ {print \$5}")
-  FSD=$(mount | awk "\$3 ~ /^${AWKTARGET}\$/ {print \$1}")
+  FST=$(mount | awk -vORS=" " "\$3 ~ /^${AWKTARGET}\$/ {print \$5}")
+  FSD=$(mount | awk -vORS=" " "\$3 ~ /^${AWKTARGET}\$/ {print \$1}")
   # Filesystem      Size  Used Avail Use% Mounted on
   DEVSIZE=$(df -hP | awk "\$6 ~ /^${AWKTARGET}\$/ {print \$2}" | sed -e "s/,/\./g" -e "s/M/ M/g" -e "s/G/ G/g" -e "s/T/ T/g" -e "s/P/ P/g")
   DEVUSED=$(df -hP | awk "\$6 ~ /^${AWKTARGET}\$/ {print \$3}" | sed -e "s/,/\./g" -e "s/M/ M/g" -e "s/G/ G/g" -e "s/T/ T/g" -e "s/P/ P/g")
