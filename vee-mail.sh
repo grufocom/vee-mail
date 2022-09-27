@@ -1,6 +1,6 @@
 #!/bin/bash
 
-VERSION=0.5.43
+VERSION=0.5.44
 HDIR=$(dirname "$0")
 DEBUG=0
 INFOMAIL=1
