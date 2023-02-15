@@ -30,6 +30,9 @@ You can use the vee-mail script as a post-backup script directly in veeam (Confi
 
 # Release notes
 
+## Version 0.5.45
+fix for new veeam release version 6 (database structure change)
+
 ## Version 0.5.44
 fixes empty mail body
 
