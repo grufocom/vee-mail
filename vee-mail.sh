@@ -1,6 +1,6 @@
 #!/bin/bash
 
-VERSION=0.5.45
+VERSION=0.5.46
 HDIR=$(dirname "$0")
 DEBUG=0
 INFOMAIL=1
@@ -82,7 +82,11 @@ fi
 
 AGENT=$($VC -v)
 # get last session id
-SESSID=$($VC session list|grep -v "Total amount"|tail -1|awk '{print $(NF-5)}')
+if [ $VV -ge 6 ]; then
+ SESSID=$($VC session list|grep -v "Total amount"|tail -1|awk '{print $(NF-7)}')
+else
+ SESSID=$($VC session list|grep -v "Total amount"|tail -1|awk '{print $(NF-5)}')
+fi
 SESSID=${SESSID:1:${#SESSID}-2}
 
 # state 1=Running, 6=Success, 7=Failed, 9=Warning
