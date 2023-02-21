@@ -30,6 +30,9 @@ You can use the vee-mail script as a post-backup script directly in veeam (Confi
 
 # Release notes
 
+## Version 0.5.47
+check the version of veeam with veeamconfig command and not dpkg or rpm
+
 ## Version 0.5.46
 fix for UUID error on SessionID since veeam version 6 release
 
