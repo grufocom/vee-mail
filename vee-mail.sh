@@ -1,6 +1,6 @@
 #!/bin/bash
 
-VERSION=0.5.46
+VERSION=0.5.47
 HDIR=$(dirname "$0")
 DEBUG=0
 INFOMAIL=1
@@ -30,7 +30,7 @@ if [ ! "$VC" ]; then
  exit
 fi
 
-VV=$(dpkg -l|grep " veeam " |awk '{print $3}'|awk -F'.' '{print $1}')
+VV=$(veeamconfig -v|cut -c2)
 
 YUM=$(which yum)
 
