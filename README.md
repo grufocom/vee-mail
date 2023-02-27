@@ -30,6 +30,9 @@ You can use the vee-mail script as a post-backup script directly in veeam (Confi
 
 # Release notes
 
+## Version 0.5.48
+use SLEEP variable from config file to wait for veeamjob to finish
+
 ## Version 0.5.47
 check the version of veeam with veeamconfig command and not dpkg or rpm
 
