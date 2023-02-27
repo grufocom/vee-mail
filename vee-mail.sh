@@ -1,11 +1,16 @@
 #!/bin/bash
 
-VERSION=0.5.47
+VERSION=0.5.48
 HDIR=$(dirname "$0")
 DEBUG=0
 INFOMAIL=1
 # INFOMAIL 1=ALWAYS (DEFAULT), 2=WARN, 3=ERROR
 SENDM=0
+sleep 1
+
+if [ ! $SLEEP ]; then
+ SLEEP=60
+fi
 
 if [[ $EUID -ne 0 ]]; then
  echo "This script must be run as root" 
@@ -19,7 +24,7 @@ STARTEDFROM=$(ps -p $PPID -hco cmd)
 if [ "$1" == "--bg" ]; then
  if [ "$STARTEDFROM" == "veeamjobman" ]; then
   logger -t vee-mail "waiting for 30 seconds"
-  sleep 30
+  sleep $SLEEP
  fi
 fi
 
