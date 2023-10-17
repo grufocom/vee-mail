@@ -30,6 +30,9 @@ You can use the vee-mail script as a post-backup script directly in veeam (Confi
 
 # Release notes
 
+## Version 0.5.49
+base64 subject fixes problem with utf8 quoted subject on some mail servers
+
 ## Version 0.5.48
 use SLEEP variable from config file to wait for veeamjob to finish
 
