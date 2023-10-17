@@ -1,6 +1,6 @@
 #!/bin/bash
 
-VERSION=0.5.48
+VERSION=0.5.49
 HDIR=$(dirname "$0")
 DEBUG=0
 INFOMAIL=1
@@ -265,9 +265,10 @@ TEMPFILE=$(mktemp)
 HN=${HOSTNAME^^}
 
 # build email
+SUBJECT=$(echo "[$STAT] $HN - $START"|base64 -w0)
 echo -en "From: $EMAILFROM
 To: $EMAILTO
-Subject: =?UTF-8?Q?[$STAT] $HN - $START?=
+Subject: =?UTF-8?B?$SUBJECT?=
 MIME-Version: 1.0
 Content-Type: text/html; charset=utf-8
 Content-Transfer-Encoding: 8bit\r
