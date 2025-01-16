@@ -4,7 +4,7 @@
 # A script that sends email notifications for one or more Veeam jobs.
 # Now uses the "id" column from the JobSessions table instead of session_id.
 
-VERSION=0.5.49
+VERSION=0.6.0
 HDIR=$(dirname "$0")
 
 ##################################################
