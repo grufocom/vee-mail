@@ -23,7 +23,11 @@ if [[ $EUID -ne 0 ]]; then
 fi
 
 # Source config (the .config file, e.g. vee-mail.config)
-. "$HDIR/$1"
+if [ ! "$1" ]; then
+ . "$HDIR/vee-mail.config"
+else
+ . "$HDIR/$1"
+fi
 
 # If config sets SLEEP, use that; else default stays 60
 if [ -z "$SLEEP" ]; then
