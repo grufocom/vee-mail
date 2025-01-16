@@ -1,8 +1,8 @@
 #!/bin/bash
 
 # vee-mail.sh
-# Full script example that loops through multiple job names
-# from a comma-separated JOBNAME in vee-mail.config.
+# A script that sends email notifications for one or more Veeam jobs.
+# Now uses the "id" column from the JobSessions table instead of session_id.
 
 VERSION=0.5.49
 HDIR=$(dirname "$0")
@@ -10,18 +10,19 @@ HDIR=$(dirname "$0")
 ##################################################
 # Default or initial values
 ##################################################
-DEBUG=0
-INFOMAIL=1
+DEBUG=0         # can be overridden by config
+INFOMAIL=1      # can be overridden by config
 SENDM=0
 SLEEP=60
 
+# Must run as root
 if [[ $EUID -ne 0 ]]; then
   echo "This script must be run as root" 
   logger -t vee-mail "This script must be run as root"
   exit 1
 fi
 
-# Source config (the .config file, presumably vee-mail.config)
+# Source config (the .config file, e.g. vee-mail.config)
 . "$HDIR/$1"
 
 # If config sets SLEEP, use that; else default stays 60
@@ -37,6 +38,7 @@ if [ "$1" == "--bg" ]; then
   fi
 fi
 
+# Where is veeamconfig?
 VC=$(which veeamconfig)
 if [ -z "$VC" ]; then
   echo "No Veeam Agent for Linux installed!"
@@ -44,7 +46,10 @@ if [ -z "$VC" ]; then
   exit 1
 fi
 
+# Veeam version number (2nd char, e.g. "6" from "v6.0.0.0")
 VV=$($VC -v 2>/dev/null | cut -c2)
+
+# Possibly set by config or system
 YUM=$(which yum 2>/dev/null)
 SQLITE=$(which sqlite3 2>/dev/null)
 CURL=$(which curl 2>/dev/null)
@@ -107,30 +112,29 @@ AGENT=$($VC -v)
 IFS=',' read -ra JOBS <<< "$JOBNAME"
 
 ##################################################
-# Function: build and send mail for the given job
+# Function: Build and send mail for the given job
 ##################################################
 function send_job_mail() {
   local oneJobName="$1"
 
   ######################################
   # Step 1: Grab the latest session from DB for the job
-  #
-  # Because older Veeam versions don't have --name, we rely
-  # on the DB to filter by job_name. This avoids "Unknown argument" errors.
+  # Since your DB has "id" instead of "session_id",
+  # we select "id, start_time_utc, end_time_utc, ..."
   ######################################
   local SESSDATA
   if [ "$VV" -ge 6 ]; then
     # For v6+ we might use start_time_utc
     SESSDATA=$(sqlite3 /var/lib/veeam/veeam_db.sqlite \
-      "SELECT start_time_utc, end_time_utc, state, progress_details, job_id, job_name, session_id
+      "SELECT id, start_time_utc, end_time_utc, state, progress_details, job_id, job_name
        FROM JobSessions
        WHERE job_name='$oneJobName'
        ORDER BY start_time_utc DESC
        LIMIT 1;")
   else
-    # For older v3-v5, use start_time
+    # For older v3-v5, might use start_time
     SESSDATA=$(sqlite3 /var/lib/veeam/veeam_db.sqlite \
-      "SELECT start_time, end_time, state, progress_details, job_id, job_name, session_id
+      "SELECT id, start_time, end_time, state, progress_details, job_id, job_name
        FROM JobSessions
        WHERE job_name='$oneJobName'
        ORDER BY start_time DESC
@@ -143,16 +147,17 @@ function send_job_mail() {
     return
   fi
 
-  local STARTTIME ENDTIME STATE DETAILS JOBID THISJOBNAME SESSID
-  STARTTIME=$( echo "$SESSDATA" | awk -F'|' '{print $1}' )
-  ENDTIME=$(   echo "$SESSDATA" | awk -F'|' '{print $2}' )
-  STATE=$(     echo "$SESSDATA" | awk -F'|' '{print $3}' )
-  DETAILS=$(   echo "$SESSDATA" | awk -F'|' '{print $4}' )
-  JOBID=$(     echo "$SESSDATA" | awk -F'|' '{print $5}' )
-  THISJOBNAME=$(echo "$SESSDATA"| awk -F'|' '{print $6}' )
-  SESSID=$(    echo "$SESSDATA" | awk -F'|' '{print $7}' )
+  # Parse the columns we selected
+  local SESSID STARTTIME ENDTIME STATE DETAILS JOBID THISJOBNAME
+  SESSID=$(    echo "$SESSDATA" | awk -F'|' '{print $1}')
+  STARTTIME=$( echo "$SESSDATA" | awk -F'|' '{print $2}')
+  ENDTIME=$(   echo "$SESSDATA" | awk -F'|' '{print $3}')
+  STATE=$(     echo "$SESSDATA" | awk -F'|' '{print $4}')
+  DETAILS=$(   echo "$SESSDATA" | awk -F'|' '{print $5}')
+  JOBID=$(     echo "$SESSDATA" | awk -F'|' '{print $6}')
+  THISJOBNAME=$(echo "$SESSDATA"| awk -F'|' '{print $7}')
 
-  # Basic sanity check: if we have no session_id or job_id, skip
+  # Basic sanity check
   if [ -z "$SESSID" ] || [ -z "$JOBID" ]; then
     logger -t vee-mail "No valid session ID or job ID for [$oneJobName]"
     return
@@ -172,7 +177,7 @@ function send_job_mail() {
   fi
 
   ######################################
-  # Step 3: Parse the DB to find the backup target info (like original script)
+  # Step 3: Parse the DB for backup repo info
   ######################################
   local RAWTARGET TARGET FST LOGIN DOMAIN LOCALDEV
   RAWTARGET=$(sqlite3 /var/lib/veeam/veeam_db.sqlite \
@@ -198,27 +203,27 @@ function send_job_mail() {
     | awk -F'Domain="' '{print $2}' \
     | awk -F'"' '{print $1}')
 
-  # If no "TARGET" from network share, maybe it's local deviceMountPoint
+  # If no "TARGET", maybe local deviceMountPoint
   if [ -z "$TARGET" ]; then
     TARGET=$(echo "$RAWTARGET" \
       | awk -F'DeviceMountPoint="' '{print $2}' \
       | awk -F'"' '{print $1}')
     local AWKTARGET
     AWKTARGET=$(echo "$TARGET" | sed 's@/@\\/@g')
+
     FST=$(mount | awk -vORS=" " "\$3 ~ /^${AWKTARGET}\$/ {print \$5}")
-    local FSD
-    FSD=$(mount | awk -vORS=" " "\$3 ~ /^${AWKTARGET}\$/ {print \$1}")
     local DEVSIZE DEVUSED DEVAVAIL DEVUSEP
     DEVSIZE=$(df -hP | awk "\$6 ~ /^${AWKTARGET}\$/ {print \$2}" | sed -e "s/,/./g" -e "s/M/ M/g" -e "s/G/ G/g" -e "s/T/ T/g" -e "s/P/ P/g")
     DEVUSED=$(df -hP | awk "\$6 ~ /^${AWKTARGET}\$/ {print \$3}" | sed -e "s/,/./g" -e "s/M/ M/g" -e "s/G/ G/g" -e "s/T/ T/g" -e "s/P/ P/g")
     DEVAVAIL=$(df -hP | awk "\$6 ~ /^${AWKTARGET}\$/ {print \$4}" | sed -e "s/,/./g" -e "s/M/ M/g" -e "s/G/ G/g" -e "s/T/ T/g" -e "s/P/ P/g")
     DEVUSEP=$(df -hP | awk "\$6 ~ /^${AWKTARGET}\$/ {print \$5}" | sed -e "s/,/./g" -e "s/M/ M/g" -e "s/G/ G/g" -e "s/T/ T/g" -e "s/P/ P/g")
+
     LOGIN=""
     DOMAIN=""
     LOCALDEV=1
   fi
 
-  # If it's a network share, we can try to mount to gather stats, etc.
+  # If it's a network share (cifs / smb) and not local, try mounting for stats
   if [ "$FST" == "cifs" ] || [ "$FST" == "smb" ] && [ "$LOCALDEV" != "1" ]; then
     local MPOINT AWKMPOINT DEVSIZE DEVUSED DEVAVAIL DEVUSEP
     if [ -n "$SMBUSER" ] && [ -n "$SMBPWD" ]; then
@@ -234,6 +239,7 @@ function send_job_mail() {
     fi
   fi
 
+  # If it's nfs and not local, try mounting
   if [ "$FST" == "nfs" ] && [ "$LOCALDEV" != "1" ]; then
     local MPOINT AWKMPOINT DEVSIZE DEVUSED DEVAVAIL DEVUSEP
     MPOINT=$(mktemp -d)
@@ -311,7 +317,6 @@ function send_job_mail() {
   SUCCESS=0
   ERROR=0
   WARNING=0
-
   if [ "$STATE" == "6" ]; then
     SUCCESS=1; BGCOLOR="#00B050"; STAT="Success";
     if [ $INFOMAIL -eq 1 ]; then
@@ -331,9 +336,7 @@ function send_job_mail() {
     fi
   fi
 
-  ######################################
   # If we aren't sending mail at all, skip
-  ######################################
   if [ $SENDM -ne 1 ]; then
     return
   fi
