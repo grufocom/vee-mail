@@ -4,7 +4,7 @@
 # A script that sends email notifications for one or more Veeam jobs.
 # Now uses the "id" column from the JobSessions table instead of session_id.
 
-VERSION=0.6.0
+VERSION=0.6.1
 HDIR=$(dirname "$0")
 
 ##################################################
@@ -193,7 +193,7 @@ function send_job_mail() {
   TARGET=$(echo "$RAWTARGET" \
     | awk -F'Address="' '{print $2}' \
     | awk -F'"' '{print $1}' \
-    | sed -e "s/^\\///g")
+    | sed -e "s/^\/\///g")
 
   FST=$(echo "$RAWTARGET" \
     | awk -F'FsType="' '{print $2}' \
