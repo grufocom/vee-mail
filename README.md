@@ -30,6 +30,9 @@ You can use the vee-mail script as a post-backup script directly in veeam (Confi
 
 # Release notes
 
+## Version 0.6.1
+fixes bug mounting cifs shares
+
 ## Version 0.6.0
 adds support for multiple backup jobs
 
