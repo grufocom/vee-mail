@@ -4,7 +4,7 @@
 # A script that sends email notifications for one or more Veeam jobs.
 # Now uses the "id" column from the JobSessions table instead of session_id.
 
-VERSION=0.6.1
+VERSION=0.6.2
 HDIR=$(dirname "$0")
 
 ##################################################
@@ -13,30 +13,60 @@ HDIR=$(dirname "$0")
 DEBUG=0         # can be overridden by config
 INFOMAIL=1      # can be overridden by config
 SENDM=0
-SLEEP=60
+DEFAULTSLEEP=60
+CONFIGFILENAME="$HDIR/vee-mail.config" # default config file
+BG_FLAG=false
 
 # Must run as root
 if [[ $EUID -ne 0 ]]; then
-  echo "This script must be run as root" 
+  echo "This script must be run as root"
   logger -t vee-mail "This script must be run as root"
   exit 1
 fi
 
+while [[ $# -gt 0 ]]; do
+    case $1 in
+        --bg)
+            BG_FLAG=true
+            shift
+            ;;
+        --config)
+            if [ -n "$2" ] && [ "$2" != "--"* ]; then
+                CONFIGFILENAME="$2"
+                shift 2
+            fi
+            ;;
+        --help|-h)
+            echo "Usage: $0 "
+												echo -e "\t--bg\t\tDetach vee-mail process from veeamjobman"
+            echo -e "\t--config\tSpecify the config file to be used"
+            echo -e "\t-h or --help\tConsult this help"
+            exit 0
+            ;;
+        *)
+            echo "invalid argument: $1"
+            exit 1
+            ;;
+    esac
+done
+
 # Source config (the .config file, e.g. vee-mail.config)
-if [ ! "$1" ]; then
- . "$HDIR/vee-mail.config"
+if [ ! -e "$CONFIGFILENAME" ]; then
+ echo "Config file $CONFIGFILENAME not found"
+ logger -t vee-mail "Config file $CONFIGFILENAME not found!"
+ exit 1
 else
- . "$HDIR/$1"
+. $CONFIGFILENAME
 fi
 
 # If config sets SLEEP, use that; else default stays 60
 if [ -z "$SLEEP" ]; then
-  SLEEP=60
+  SLEEP=$DEFAULTSLEEP
 fi
 
 STARTEDFROM=$(ps -p $PPID -hco cmd)
-if [ "$1" == "--bg" ]; then
-  if [ "$STARTEDFROM" == "veeamjobman" ]; then
+if [ "$BG" == "true" ]; then
+  if [ "$STARTEDFROM" == "veeamjobman" ] || [ "$STARTEDFROM" == "post-exec.sh" ]; then
     logger -t vee-mail "waiting for ${SLEEP} seconds"
     sleep "$SLEEP"
   fi
@@ -52,6 +82,11 @@ fi
 
 # Veeam version number (2nd char, e.g. "6" from "v6.0.0.0")
 VV=$($VC -v 2>/dev/null | cut -c2)
+if [ ! "$VV" ]; then
+ echo "No connection to veeamservice!"
+ logger -t vee-mail "No connection to veeamservice!"
+ exit 1
+fi
 
 # Possibly set by config or system
 YUM=$(which yum 2>/dev/null)
@@ -432,8 +467,8 @@ function send_job_mail() {
 # If not running in --bg, but started from veeamjobman,
 # re-run in background
 ##################################################
-if [ "$1" != "--bg" ] && [ "$STARTEDFROM" == "veeamjobman" ]; then
-  nohup "$0" --bg >/dev/null 2>/dev/null &
+if [ ! "$BG" == "true" ] && ([ "$STARTEDFROM" == "veeamjobman" ] || [ "$STARTEDFROM" == "post-exec.sh" ]); then
+  nohup "$0" --bg --config "$CONFIGFILENAME"
   exit
 fi
 
@@ -448,4 +483,3 @@ for oneJobName in "${JOBS[@]}"; do
 done
 
 exit 0
-
