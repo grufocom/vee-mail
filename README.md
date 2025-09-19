@@ -30,6 +30,9 @@ You can use the vee-mail script as a post-backup script directly in veeam (Confi
 
 # Release notes
 
+## Version 0.6.3
+fixes BG_FLAG bug and added some logging - thx to adrianhalid
+
 ## Version 0.6.2
 fixes command line parameter bug and added -h/--help cli parameter
 
