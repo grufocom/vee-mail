@@ -4,7 +4,7 @@
 # A script that sends email notifications for one or more Veeam jobs.
 # Now uses the "id" column from the JobSessions table instead of session_id.
 
-VERSION=0.6.2
+VERSION=0.6.3
 HDIR=$(dirname "$0")
 
 ##################################################
@@ -50,6 +50,8 @@ while [[ $# -gt 0 ]]; do
     esac
 done
 
+logger -t vee-mail "Starting vee-mail"
+
 # Source config (the .config file, e.g. vee-mail.config)
 if [ ! -e "$CONFIGFILENAME" ]; then
  echo "Config file $CONFIGFILENAME not found"
@@ -65,11 +67,9 @@ if [ -z "$SLEEP" ]; then
 fi
 
 STARTEDFROM=$(ps -p $PPID -hco cmd)
-if [ "$BG" == "true" ]; then
-  if [ "$STARTEDFROM" == "veeamjobman" ] || [ "$STARTEDFROM" == "post-exec.sh" ]; then
+if [ "$BG_FLAG" == "true" ]; then
     logger -t vee-mail "waiting for ${SLEEP} seconds"
     sleep "$SLEEP"
-  fi
 fi
 
 # Where is veeamconfig?
@@ -377,6 +377,7 @@ function send_job_mail() {
 
   # If we aren't sending mail at all, skip
   if [ $SENDM -ne 1 ]; then
+    logger -t vee-mail "Skipping email for job [$oneJobName] with state [$STATE]"
     return
   fi
 
@@ -467,8 +468,9 @@ function send_job_mail() {
 # If not running in --bg, but started from veeamjobman,
 # re-run in background
 ##################################################
-if [ ! "$BG" == "true" ] && ([ "$STARTEDFROM" == "veeamjobman" ] || [ "$STARTEDFROM" == "post-exec.sh" ]); then
-  nohup "$0" --bg --config "$CONFIGFILENAME"
+if [ ! "$BG_FLAG" == "true" ] && ([ "$STARTEDFROM" == "veeamjobman" ] || [ "$STARTEDFROM" == "post-exec.sh" ]); then
+  logger -t vee-mail "Running in background mode, detaching from veeamjobman"
+  nohup "$0" --bg --config "$CONFIGFILENAME" >> /var/log/vee-mail.log 2>&1 &
   exit
 fi
 
