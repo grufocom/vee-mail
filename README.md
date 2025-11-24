@@ -30,6 +30,12 @@ You can use the vee-mail script as a post-backup script directly in veeam (Confi
 
 # Release notes
 
+## Version 0.6.4
+extract backup type (Full/Incremental) and Display backup type in email
+fix version detection to support two-digit version numbers (v13+)
+add XXXBACKUPTYPEXXX template variable for HTML customization
+
+Breaking change: Requires 'details' column in SQL queries
 ## Version 0.6.3
 fixes BG_FLAG bug and added some logging - thx to adrianhalid
 
