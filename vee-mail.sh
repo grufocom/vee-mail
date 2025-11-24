@@ -4,7 +4,7 @@
 # A script that sends email notifications for one or more Veeam jobs.
 # Now uses the "id" column from the JobSessions table instead of session_id.
 
-VERSION=0.6.3
+VERSION=0.6.4
 HDIR=$(dirname "$0")
 
 ##################################################
@@ -80,11 +80,18 @@ if [ -z "$VC" ]; then
   exit 1
 fi
 
-# Veeam version number (2nd char, e.g. "6" from "v6.0.0.0")
-VV=$($VC -v 2>/dev/null | cut -c2)
-if [ ! "$VV" ]; then
+# Veeam version number (extract major version, e.g. "6" from "v6.0.0.0" or "13" from "v13.0.0.0")
+VV_FULL=$($VC -v 2>/dev/null)
+if [ -z "$VV_FULL" ]; then
  echo "No connection to veeamservice!"
  logger -t vee-mail "No connection to veeamservice!"
+ exit 1
+fi
+# Extract version number after 'v' until first dot
+VV=$(echo "$VV_FULL" | sed -n 's/^v\([0-9]\+\)\..*$/\1/p')
+if [ -z "$VV" ]; then
+ echo "Could not parse Veeam version from: $VV_FULL"
+ logger -t vee-mail "Could not parse Veeam version from: $VV_FULL"
  exit 1
 fi
 
@@ -158,14 +165,13 @@ function send_job_mail() {
 
   ######################################
   # Step 1: Grab the latest session from DB for the job
-  # Since your DB has "id" instead of "session_id",
-  # we select "id, start_time_utc, end_time_utc, ..."
+  # Now also including the "details" column to extract backup_type
   ######################################
   local SESSDATA
   if [ "$VV" -ge 6 ]; then
     # For v6+ we might use start_time_utc
     SESSDATA=$(sqlite3 /var/lib/veeam/veeam_db.sqlite \
-      "SELECT id, start_time_utc, end_time_utc, state, progress_details, job_id, job_name
+      "SELECT id, start_time_utc, end_time_utc, state, progress_details, job_id, job_name, details
        FROM JobSessions
        WHERE job_name='$oneJobName'
        ORDER BY start_time_utc DESC
@@ -173,7 +179,7 @@ function send_job_mail() {
   else
     # For older v3-v5, might use start_time
     SESSDATA=$(sqlite3 /var/lib/veeam/veeam_db.sqlite \
-      "SELECT id, start_time, end_time, state, progress_details, job_id, job_name
+      "SELECT id, start_time, end_time, state, progress_details, job_id, job_name, details
        FROM JobSessions
        WHERE job_name='$oneJobName'
        ORDER BY start_time DESC
@@ -186,20 +192,36 @@ function send_job_mail() {
     return
   fi
 
-  # Parse the columns we selected
-  local SESSID STARTTIME ENDTIME STATE DETAILS JOBID THISJOBNAME
-  SESSID=$(    echo "$SESSDATA" | awk -F'|' '{print $1}')
-  STARTTIME=$( echo "$SESSDATA" | awk -F'|' '{print $2}')
-  ENDTIME=$(   echo "$SESSDATA" | awk -F'|' '{print $3}')
-  STATE=$(     echo "$SESSDATA" | awk -F'|' '{print $4}')
-  DETAILS=$(   echo "$SESSDATA" | awk -F'|' '{print $5}')
-  JOBID=$(     echo "$SESSDATA" | awk -F'|' '{print $6}')
-  THISJOBNAME=$(echo "$SESSDATA"| awk -F'|' '{print $7}')
+  # Parse the columns we selected (now including details as column 8)
+  local SESSID STARTTIME ENDTIME STATE DETAILS JOBID THISJOBNAME DETAILSFIELD
+  SESSID=$(       echo "$SESSDATA" | awk -F'|' '{print $1}')
+  STARTTIME=$(    echo "$SESSDATA" | awk -F'|' '{print $2}')
+  ENDTIME=$(      echo "$SESSDATA" | awk -F'|' '{print $3}')
+  STATE=$(        echo "$SESSDATA" | awk -F'|' '{print $4}')
+  DETAILS=$(      echo "$SESSDATA" | awk -F'|' '{print $5}')
+  JOBID=$(        echo "$SESSDATA" | awk -F'|' '{print $6}')
+  THISJOBNAME=$(  echo "$SESSDATA" | awk -F'|' '{print $7}')
+  DETAILSFIELD=$( echo "$SESSDATA" | awk -F'|' '{print $8}')
+
+  # Extract backup_type from details field
+  local BACKUPTYPE BACKUPTYPEDISPLAY
+  BACKUPTYPE=$(echo "$DETAILSFIELD" | awk -F'backup_type="' '{print $2}' | awk -F'"' '{print $1}')
+  if [ "$BACKUPTYPE" == "Full" ]; then
+    BACKUPTYPEDISPLAY="Full"
+  elif [ "$BACKUPTYPE" == "Increment" ]; then
+    BACKUPTYPEDISPLAY="Incremental"
+  else
+    BACKUPTYPEDISPLAY=""
+  fi
 
   # Basic sanity check
   if [ -z "$SESSID" ] || [ -z "$JOBID" ]; then
     logger -t vee-mail "No valid session ID or job ID for [$oneJobName]"
     return
+  fi
+
+  if [ $DEBUG -gt 0 ]; then
+    logger -t vee-mail "Job: $oneJobName, Session: $SESSID, State: $STATE, BackupType: $BACKUPTYPE"
   fi
 
   ######################################
@@ -390,9 +412,13 @@ function send_job_mail() {
   local HN
   HN=${HOSTNAME^^}
 
-  # Build a subject that includes the job name
+  # Build a subject that includes the job name and backup type
   local SUBJECT
-  SUBJECT=$(echo "[$STAT] $HN - $START ($THISJOBNAME)" | base64 -w0)
+  if [ -n "$BACKUPTYPEDISPLAY" ]; then
+    SUBJECT=$(echo "[$STAT] $HN - $START ($THISJOBNAME - $BACKUPTYPEDISPLAY)" | base64 -w0)
+  else
+    SUBJECT=$(echo "[$STAT] $HN - $START ($THISJOBNAME)" | base64 -w0)
+  fi
 
   # Basic mail headers:
   {
@@ -437,6 +463,7 @@ function send_job_mail() {
       -e "s|XXXDISKUSEDXXX|$DEVUSED|g" \
       -e "s|XXXDISKAVAILXXX|$DEVAVAIL|g" \
       -e "s|XXXDISKUSEPXXX|$DEVUSEP|g" \
+      -e "s/XXXBACKUPTYPEXXX/$BACKUPTYPEDISPLAY/g" \
       "$HTMLTEMPLATE" >> "$TEMPFILE"
 
   ######################################
