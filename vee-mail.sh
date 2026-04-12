@@ -4,7 +4,7 @@
 # A script that sends email notifications for one or more Veeam jobs.
 # Now uses the "id" column from the JobSessions table instead of session_id.
 
-VERSION=0.6.4
+VERSION=0.6.5
 HDIR=$(dirname "$0")
 
 ##################################################
@@ -122,9 +122,9 @@ fi
 
 if [ $USECURL -ne 1 ] && [ "$SENDMAIL" != "/usr/sbin/sendmail" ] && [ "$SENDMAIL" != "/bin/sendmail" ]; then
   if [ "$YUM" ]; then
-    yum install -y sendmail
+    yum install -y mailx
   else
-    apt-get install -y sendmail
+    apt-get install -y bsd-mailx
   fi
 fi
 
