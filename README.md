@@ -30,6 +30,10 @@ You can use the vee-mail script as a post-backup script directly in veeam (Confi
 
 # Release notes
 
+## Version 0.6.5
+fixed an issue where a missing sendmail command could lead to an uninstall of postfix packages.
+switched from sendmail command dependency to mailx/bsd-mailx
+
 ## Version 0.6.4
 extract backup type (Full/Incremental) and Display backup type in email
 fix version detection to support two-digit version numbers (v13+)
